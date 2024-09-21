@@ -3,29 +3,33 @@ This document holds a summary of each meeting and what was accomplished during t
 
 
 
-9/3/24
+9/3/24 - Attendees: Nathan, Jaron, Brett, Yash
 Discussion of project ideas
 Decided on Biometric authentication ideas
 
-9/4/24
+9/4/24 - Attendees: Nathan, Jaron, Brett, Yash
 Discussion of more project ideas
 Decided on presenting several ideas to professor:
 * Tinder for Forests
 * Real-time music collaboration tool
 * Location-based media recommendations
 
-9/5/24
+9/5/24 - Attendees: Nathan, Jaron, Brett
 Discussion of SRS and splitting up the Report into sections for each member to accomplish.
 Development of interview questions to ask interviewees.
 Discussing implementation methods of CollaBand (Peer-to-peer vs. Client-Server)
 
-9/10/24
+9/10/24  - Attendees: Nathan, Jaron, Brett
 Discussing more details of what features CollaBand will have (users, projects, tutorials.
 Discussing Presentation roles and slideshow creation by member.
 
-9/13/24
+9/13/24 - Attendees: Nathan, Jaron, Brett
 Creating system diagram and discussing technologies to implement.
 
-9/16/24
+9/16/24 - Attendees: Nathan, Jaron, Brett
 Revising system diagram.
 Discussing finalizing touches on Report and Presentation
+
+9/19/24 - Attendees: Nathan, Jaron, Brett
+Practicing presentation and reviewing presentation slides for quality.
+Discussing final touches of the report and presentation.
