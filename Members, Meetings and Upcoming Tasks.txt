@@ -1,0 +1,13 @@
+Group members:
+Yash Sharma: Group Leader, 
+Brett Alford: Database Engineer, 
+Nathan Pierce: Back End Engineer, 
+Jaron Hardage: Front End Engineer
+
+Please find the group meetings and activities in a separate .txt file
+
+Upcoming tasks for Stage 2 (Software Design Specification):
+Decompose the system into modules (UML diagrams)
+Design a prototype user interface
+Prepare for user testing and feedback
+
