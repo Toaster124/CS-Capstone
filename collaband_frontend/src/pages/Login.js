@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 
 function Login() {
-  const [email, setEmail] = useState('');
+  const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ function Login() {
     e.preventDefault();
     try {
       const response = await api.post('/auth/login/', {
-        email,
+        email_or_username: emailOrUsername,
         password,
       });
       // Save the authentication token
@@ -21,7 +21,7 @@ function Login() {
       // Redirect to the dashboard
       navigate('/dashboard');
     } catch (err) {
-      setError('Invalid email or password');
+      setError('Invalid email/username or password');
     }
   };
 
@@ -34,8 +34,8 @@ function Login() {
           <label>Email or Username:</label>
           <input
             type="text"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={emailOrUsername}
+            onChange={(e) => setEmailOrUsername(e.target.value)}
             required
           />
         </div>

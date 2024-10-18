@@ -8,7 +8,7 @@ function Header() {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    navigate('/');
+    navigate('/login');
   };
 
   return (
@@ -17,13 +17,19 @@ function Header() {
         <Link to="/">Home</Link>
         {isAuthenticated ? (
           <>
+            {' | '}
             <Link to="/dashboard">Dashboard</Link>
+            {' | '}
             <Link to="/profile">Profile</Link>
+            {' | '}
             <button onClick={handleLogout}>Logout</button>
           </>
         ) : (
           <>
-            <Link to="/login">Login</Link> | <Link to="/register">Register</Link>
+            {' | '}
+            <Link to="/login">Login</Link>
+            {' | '}
+            <Link to="/register">Register</Link>
           </>
         )}
       </nav>

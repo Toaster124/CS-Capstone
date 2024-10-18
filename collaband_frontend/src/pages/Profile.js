@@ -17,10 +17,6 @@ function Profile() {
     fetchUser();
   }, []);
 
-  const handleUpdate = async () => {
-    // Implement update logic
-  };
-
   return (
     <div>
       <h2>Your Profile</h2>
@@ -32,7 +28,7 @@ function Profile() {
         <label>Email:</label>
         <p>{user.email}</p>
       </div>
-      {/* Include form to update profile if desired */}
+      {/* Optionally include form to update profile information */}
     </div>
   );
 }
