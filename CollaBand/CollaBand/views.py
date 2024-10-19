@@ -27,3 +27,15 @@ from django.http import HttpResponse, HttpResponsePermanentRedirect, Http404
 from django.urls import reverse
 from django.shortcuts import get_object_or_404
 from django.views import View
+
+
+## Example
+def drinks(request, drink_name):
+    drink = {"mocha": "type of coffee",
+             "tea": "type of beverage",
+             "lemonade": "type of refreshment"}
+    try: 
+        choiceOfDrink = drink[drink_name]
+    except:
+        raise Http404("Drink not found")
+    return HttpResponse(f"<h2> {drink_name} </h2>"+choiceOfDrink)
