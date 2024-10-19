@@ -24,6 +24,6 @@ app_name = 'CollaBand'
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('home/', views.home), #example
-    path('drinks/', views.drinks),
+    path('home/', views.homepage.as_view(), name='homepage'),
+    path('dashboard/', views.dashboard, name='dashboard')
 ]
