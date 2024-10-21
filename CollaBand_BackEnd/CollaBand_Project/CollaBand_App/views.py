@@ -1,5 +1,4 @@
 from django.shortcuts import render
-from django.shortcuts import render
 
 # Create your views here.
 '''
@@ -23,7 +22,7 @@ from django.shortcuts import get_list_or_404, get_object_or_404
 
 from django.shortcuts import render
 # Create your views here.
-'''
+
 from django.http import HttpResponse, HttpResponseNotAllowed, HttpResponsePermanentRedirect, JsonResponse, Http404 
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, render
@@ -32,21 +31,21 @@ from django.views.generic.base import TemplateView
 from rest_framework.response import Response
 from CollaBand_App.models import Project
 import json
-'''
+
 
 def homepage(request):
     return 200
 
-def dashboard(request):
-    return 200
-'''
+'''def dashboard(request):
+    return 200'''
+
 #class view to display the homepage template
 class homepage(TemplateView):
     template_name='index.html'
     
 
 #Dashboard View
-def dashboard(request, projectID):
+def dashboard(request):
     if request.user.is_authenticated: #NP note: could change this to a decorator
         user = request.user
         data = json.loads(request.body.decode('utf-8'))
@@ -68,6 +67,7 @@ def dashboard(request, projectID):
         
         elif request.method == 'PUT':   #modify a project field
             try:
+                projectID = data.get('projectID')
                 projectToChange = Project.objects.get(id=projectID, userID=user)
                 
                 #changing project name
@@ -76,9 +76,9 @@ def dashboard(request, projectID):
                 
                 projectToChange.projectName = newProjectName
                 projectToChange.description = newProjectDescription
-'''
-'''**Can add in stuff to change each field, especially when adding a collaborator/viewer**'''
-'''
+
+                '''**Can add in stuff to change each field, especially when adding a collaborator/viewer**'''
+
                 
                 projectToChange.save()    
                 return Response({'message':'Project modified successfully'}, status=200)
@@ -99,4 +99,3 @@ def dashboard(request, projectID):
         return Response({'message':'Please log in'}) #placeholder
     
     
-'''
