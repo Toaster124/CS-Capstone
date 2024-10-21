@@ -1,82 +1,104 @@
 // src/pages/Register.js
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Button, TextField, Container, Typography, Box } from '@mui/material';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import api from '../utils/api';
 
 function Register() {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    password2: '',
+  });
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    if (password !== confirmPassword) {
-      setError("Passwords don't match");
+    if (formData.password !== formData.password2) {
+      setError('Passwords do not match');
       return;
     }
     try {
       await api.post('/auth/register/', {
-        username,
-        email,
-        password,
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
       });
-      // Redirect to login page after successful registration
       navigate('/login');
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      setError('Registration failed');
     }
   };
 
   return (
-    <div>
-      <h2>Register</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Username:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+    <Container maxWidth="sm">
+      <Box mt={5}>
+        <Typography variant="h4" gutterBottom>
+          Register
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <TextField
+            label="Username"
+            fullWidth
+            margin="normal"
             required
+            value={formData.username}
+            onChange={e =>
+              setFormData({ ...formData, username: e.target.value })
+            }
           />
-        </div>
-        <div>
-          <label>Email:</label>
-          <input
+          <TextField
+            label="Email"
+            fullWidth
+            margin="normal"
+            required
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+            value={formData.email}
+            onChange={e => setFormData({ ...formData, email: e.target.value })}
           />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input
+          <TextField
+            label="Password"
+            fullWidth
+            margin="normal"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             required
+            value={formData.password}
+            onChange={e =>
+              setFormData({ ...formData, password: e.target.value })
+            }
           />
-        </div>
-        <div>
-          <label>Confirm Password:</label>
-          <input
+          <TextField
+            label="Confirm Password"
+            fullWidth
+            margin="normal"
             type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
             required
+            value={formData.password2}
+            onChange={e =>
+              setFormData({ ...formData, password2: e.target.value })
+            }
           />
-        </div>
-        <button type="submit">Register</button>
-      </form>
-      <p>
-        Already have an account? <Link to="/login">Login here</Link>
-      </p>
-    </div>
+          {error && (
+            <Typography color="error" variant="body2">
+              {error}
+            </Typography>
+          )}
+          <Box mt={2}>
+            <Button variant="contained" color="primary" type="submit">
+              Register
+            </Button>
+          </Box>
+        </form>
+        <Box mt={2}>
+          <Typography variant="body2">
+            Already have an account?{' '}
+            <RouterLink to="/login">Login here</RouterLink>.
+          </Typography>
+        </Box>
+      </Box>
+    </Container>
   );
 }
 

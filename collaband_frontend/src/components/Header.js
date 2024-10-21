@@ -1,39 +1,55 @@
 // src/components/Header.js
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { logout } from '../redux/actions/authActions';
+import { AppBar, Toolbar, Typography, Button } from '@mui/material';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 function Header() {
-  const isAuthenticated = !!localStorage.getItem('token');
+  const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
+    dispatch(logout());
+    navigate('/');
   };
 
   return (
-    <header>
-      <nav>
-        <Link to="/">Home</Link>
+    <AppBar position="static">
+      <Toolbar>
+        <Typography
+          variant="h6"
+          component={RouterLink}
+          to="/"
+          sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}
+        >
+          CollaBand
+        </Typography>
         {isAuthenticated ? (
           <>
-            {' | '}
-            <Link to="/dashboard">Dashboard</Link>
-            {' | '}
-            <Link to="/profile">Profile</Link>
-            {' | '}
-            <button onClick={handleLogout}>Logout</button>
+            <Button color="inherit" component={RouterLink} to="/dashboard">
+              Dashboard
+            </Button>
+            <Button color="inherit" component={RouterLink} to="/profile">
+              Profile
+            </Button>
+            <Button color="inherit" onClick={handleLogout}>
+              Logout
+            </Button>
           </>
         ) : (
           <>
-            {' | '}
-            <Link to="/login">Login</Link>
-            {' | '}
-            <Link to="/register">Register</Link>
+            <Button color="inherit" component={RouterLink} to="/login">
+              Login
+            </Button>
+            <Button color="inherit" component={RouterLink} to="/register">
+              Register
+            </Button>
           </>
         )}
-      </nav>
-    </header>
+      </Toolbar>
+    </AppBar>
   );
 }
 
