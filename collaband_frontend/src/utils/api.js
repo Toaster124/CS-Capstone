@@ -2,19 +2,18 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
+  baseURL: 'http://127.0.0.1:8000/', // Update with your back-end URL
 });
 
-// Add a request interceptor to include the auth token
 api.interceptors.request.use(
-  (config) => {
+  config => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Token ${token}`; // Adjust 'Token' if your back-end uses 'Bearer'
+      config.headers.Authorization = `Token ${token}`; // Adjust based on your back-end authentication
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  error => Promise.reject(error),
 );
 
 export default api;
