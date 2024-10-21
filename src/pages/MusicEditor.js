@@ -1,7 +1,8 @@
 // src/pages/MusicEditor.js
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { initWebSocket } from '../utils/websocket';
+import { Typography } from '@mui/material';
 import VirtualKeyboard from '../components/VirtualKeyboard';
 import MusicNotation from '../components/MusicNotation';
 import * as Tone from 'tone';
@@ -28,11 +29,7 @@ function MusicEditor() {
     };
   }, [projectId]);
 
-  /*const playNoteLocally = (note, velocity) => {
-    synthRef.current.triggerAttackRelease(note, '8n', undefined, velocity);
-  };
-
-   const playNote = (note, velocity) => {
+  const playNote = (note, velocity) => {
     // Play note locally
     playNoteLocally(note, velocity);
     // Send note to server
@@ -41,7 +38,7 @@ function MusicEditor() {
       data: { note, velocity },
     };
     wsRef.current.send(JSON.stringify(message));
-  }; */
+  };
 
   const playNoteLocally = (note, velocity) => {
     synthRef.current.triggerAttackRelease(note, '8n', undefined, velocity);

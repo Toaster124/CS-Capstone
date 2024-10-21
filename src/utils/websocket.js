@@ -10,7 +10,7 @@ export function initWebSocket(projectId) {
   };
 
   ws.onmessage = event => {
-/*    const data = JSON.parse(event.data);
+    /*    const data = JSON.parse(event.data);
     // Handle incoming messages
     handleMessage(data);
 */

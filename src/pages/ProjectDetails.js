@@ -2,7 +2,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Typography, Container, Button, Box } from '@mui/material';
-import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 
 function ProjectDetails() {
@@ -16,15 +15,13 @@ function ProjectDetails() {
       try {
         const response = await api.get(`/collaband/projects/${projectId}/`);
         setProject(response.data.project);
-        setUserRole(response.data.userRole); // Assuming the back-end provides userRole
+        setUserRole(response.data.userRole); // Assuming the back end provides userRole
       } catch (err) {
         console.error('Failed to fetch project details', err);
       }
     };
     fetchProject();
   }, [projectId]);
-  
-  // Conditionally render buttons based on userRole
 
   const handleDelete = async () => {
     try {
@@ -57,9 +54,12 @@ function ProjectDetails() {
         >
           Open Music Editor
         </Button>
-        <Button variant="outlined" color="secondary" onClick={handleDelete}>
-          Delete Project
-        </Button>
+        {/* Conditionally render buttons based on userRole */}
+        {(userRole === 'owner' || userRole === 'admin') && (
+          <Button variant="outlined" color="secondary" onClick={handleDelete}>
+            Delete Project
+          </Button>
+        )}
       </Box>
     </Container>
   );
