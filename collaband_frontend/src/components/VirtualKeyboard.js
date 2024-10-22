@@ -5,7 +5,7 @@ import * as Tone from 'tone';
 function VirtualKeyboard({ onPlayNote }) {
   const synth = new Tone.Synth().toDestination();
 
-  const handleNoteClick = (note) => {
+  const handleNoteClick = note => {
     // Play note locally
     synth.triggerAttackRelease(note, '8n');
     // Notify parent component

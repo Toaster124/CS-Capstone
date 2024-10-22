@@ -1,6 +1,7 @@
 // src/pages/Login.js
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Button, TextField, Container, Typography, Box } from '@mui/material';
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import api from '../utils/api';
 
 function Login() {
@@ -9,7 +10,7 @@ function Login() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
     try {
       const response = await api.post('/auth/login/', {
@@ -26,34 +27,48 @@ function Login() {
   };
 
   return (
-    <div>
-      <h2>Login</h2>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email or Username:</label>
-          <input
-            type="text"
+    <Container maxWidth="sm">
+      <Box mt={5}>
+        <Typography variant="h4" gutterBottom>
+          Login
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <TextField
+            label="Email or Username"
+            fullWidth
+            margin="normal"
+            required
             value={emailOrUsername}
-            onChange={(e) => setEmailOrUsername(e.target.value)}
-            required
+            onChange={e => setEmailOrUsername(e.target.value)}
           />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input
+          <TextField
+            label="Password"
+            fullWidth
+            margin="normal"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             required
+            value={password}
+            onChange={e => setPassword(e.target.value)}
           />
-        </div>
-        <button type="submit">Login</button>
-      </form>
-      <p>
-        New user? <Link to="/register">Register here</Link>
-      </p>
-    </div>
+          {error && (
+            <Typography color="error" variant="body2">
+              {error}
+            </Typography>
+          )}
+          <Box mt={2}>
+            <Button variant="contained" color="primary" type="submit">
+              Login
+            </Button>
+          </Box>
+        </form>
+        <Box mt={2}>
+          <Typography variant="body2">
+            Don't have an account?{' '}
+            <RouterLink to="/register">Register here</RouterLink>.
+          </Typography>
+        </Box>
+      </Box>
+    </Container>
   );
 }
 

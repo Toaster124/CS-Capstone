@@ -1,6 +1,7 @@
 // src/App.js
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { CssBaseline } from '@mui/material';
 
 // Page Components
 import Home from './pages/Home';
@@ -19,13 +20,13 @@ import ProtectedRoute from './components/ProtectedRoute';
 function App() {
   return (
     <Router>
+      <CssBaseline />
       <Header />
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
         {/* Protected Routes */}
         <Route
           path="/dashboard"
@@ -59,8 +60,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* Catch-all Route for 404 Not Found */}
+        {/* 404 Not Found */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

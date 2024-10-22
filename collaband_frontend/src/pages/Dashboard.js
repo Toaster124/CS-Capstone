@@ -1,6 +1,14 @@
 // src/pages/Dashboard.js
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import {
+  Typography,
+  Container,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+} from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
 import api from '../utils/api';
 
 function Dashboard() {
@@ -9,8 +17,8 @@ function Dashboard() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const response = await api.get('/projects/');
-        setProjects(response.data);
+        const response = await api.get('/collaband/dashboard/');
+        setProjects(response.data.projects);
       } catch (err) {
         console.error('Failed to fetch projects', err);
       }
@@ -19,17 +27,34 @@ function Dashboard() {
   }, []);
 
   return (
-    <div>
-      <h2>Your Projects</h2>
-      <Link to="/projects/new">Create New Project</Link>
-      <ul>
-        {projects.map((project) => (
-          <li key={project.id}>
-            <Link to={`/projects/${project.id}`}>{project.name}</Link>
-          </li>
+    <Container>
+      <Typography variant="h4" gutterBottom>
+        Your Projects
+      </Typography>
+      <Button
+        variant="contained"
+        color="primary"
+        component={RouterLink}
+        to="/projects/new"
+      >
+        Create New Project
+      </Button>
+      <List>
+        {projects.map(project => (
+          <ListItem
+            key={project.id}
+            button
+            component={RouterLink}
+            to={`/projects/${project.id}`}
+          >
+            <ListItemText
+              primary={project.projectName}
+              secondary={project.description}
+            />
+          </ListItem>
         ))}
-      </ul>
-    </div>
+      </List>
+    </Container>
   );
 }
 

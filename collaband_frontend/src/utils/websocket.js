@@ -1,25 +1,24 @@
 // src/utils/websocket.js
-export function initWebSocket(projectId, handleMessage) {
-  const token = localStorage.getItem('token'); // Include token if required by your back-end
+export function initWebSocket(projectId) {
+  const token = localStorage.getItem('token');
   const ws = new WebSocket(
-    `${process.env.REACT_APP_WEBSOCKET_URL}/ws/projects/${projectId}/?token=${token}`
+    `ws://localhost:8000/ws/collaboration/${projectId}/?token=${token}`,
   );
 
   ws.onopen = () => {
     console.log('WebSocket connection established');
   };
 
-  ws.onmessage = (event) => {
-    const message = JSON.parse(event.data);
-    handleMessage(message);
+  ws.onmessage = event => {
+    /*    const data = JSON.parse(event.data);
+    // Handle incoming messages
+    handleMessage(data);
+*/
+    console.log('Received message:', event.data);
   };
 
   ws.onclose = () => {
     console.log('WebSocket connection closed');
-  };
-
-  ws.onerror = (error) => {
-    console.error('WebSocket error:', error);
   };
 
   return ws;
