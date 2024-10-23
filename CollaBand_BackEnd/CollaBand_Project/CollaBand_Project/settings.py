@@ -57,11 +57,14 @@ MIDDLEWARE = [
 
 #To link to React
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES':['rest_framework.permission.AllowAny']
+    'DEFAULT_PERMISSION_CLASSES':['rest_framework.permissions.AllowAny']
 }
 
 #To link to React
 CORS_ORIGIN_ALLOW_ALL = True
+
+#To link to socketio
+REDIS_URL = "redis://127.0.0.1:6379"
 
 ROOT_URLCONF = 'CollaBand_Project.urls'
 

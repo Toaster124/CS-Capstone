@@ -7,7 +7,7 @@ from django.utils.timezone import now
 
 class Project(models.Model):
     projectName = models.CharField(max_length=50)
-    creationdate = models.DateTimeField
+    creationdate = models.DateTimeField(default=now)
     description = models.CharField(max_length=250, default="")
     userID = models.ForeignKey(User, on_delete=models.CASCADE)
     
@@ -94,3 +94,24 @@ class VersionControl(models.Model):
 
     def __str__(self):
         return self.timestamp
+    
+
+#Below - socket.io tutorial models
+import uuid
+
+class Chat(models.Model):
+    initiator = models.ForeignKey(
+        User, on_delete=models.DO_NOTHING, related_name="initiator_chat"
+    )
+    acceptor = models.ForeignKey(
+        User, on_delete=models.DO_NOTHING, related_name="acceptor_name",
+        null=True
+    )
+    short_id = models.CharField(max_length=255, default=uuid.uuid4, unique=True)
+
+
+class ChatMsg(models.Model):
+    chat = models.ForeignKey(Chat, on_delete=models.CASCADE, related_name="messages")
+    sender = models.ForeignKey(User, on_delete=models.DO_NOTHING)
+    text = models.TextField()
+    created_at = models.DateTimeField(default=now)

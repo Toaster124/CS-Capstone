@@ -99,3 +99,32 @@ def dashboard(request):
         return Response({'message':'Please log in'}) #placeholder
     
     
+def projectDAW(request, projectID):
+    return Response(status=200)
+
+def login(request):
+    return Response(status=200)
+
+def contact(request):
+    return Response(status=200)
+
+def userSettings(request):
+    return Response(status=200)
+
+
+#socket.io Tutorial
+from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import IsAuthenticated
+from .serializers import ChatSerializer
+from .models import Chat
+from rest_framework import status
+
+class GetChat(GenericAPIView):
+    #permission_classes = [IsAuthenticated]
+    serializer_class = ChatSerializer
+
+    def get(self, request):
+        #chat, created = Chat.objects.get_or_create(initiator__id=request.user.pk)
+        chat, created = Chat.objects.get_or_create(initiator__id=1)
+        serializer = self.serializer_class(instance=chat)
+        return Response({"message": "Chat gotten", "data": serializer.data}, status=status.HTTP_200_OK)
