@@ -32,6 +32,9 @@ from rest_framework.response import Response
 from CollaBand_App.models import Project
 import json
 
+#for home
+def home_view(request):
+    return render(request, 'index.html')
 
 def homepage(request):
     return 200
