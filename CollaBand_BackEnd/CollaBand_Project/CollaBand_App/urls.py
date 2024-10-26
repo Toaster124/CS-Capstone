@@ -8,5 +8,5 @@ urlpatterns = [
     path('user-settings/', views.userSettings, name='userSettings'),
     path('contact/', views.contact, name='contact'),
     path('login/', views.login, name='login'),
-    path("all/", views.GetChat.as_view(), name="get-chats"),
+    path("chat-ex/", views.GetChat.as_view(), name="get-chats"),
 ]

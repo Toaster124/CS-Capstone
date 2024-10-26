@@ -13,3 +13,4 @@ class ChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = Chat
         fields = ["messages", "short_id"]
+

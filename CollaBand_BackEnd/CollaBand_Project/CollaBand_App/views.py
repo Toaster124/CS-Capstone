@@ -29,8 +29,9 @@ from django.shortcuts import get_object_or_404, render
 from django.views import View
 from django.views.generic.base import TemplateView
 from rest_framework.response import Response
-from CollaBand_App.models import Project
+from CollaBand_App.models import Project, UserProjectRole, User
 import json
+from rest_framework.decorators import api_view
 
 
 def homepage(request):
@@ -45,49 +46,92 @@ class homepage(TemplateView):
     
 
 #Dashboard View
+@api_view(['GET', 'PUT', 'POST', 'DELETE'])
 def dashboard(request):
     if request.user.is_authenticated: #NP note: could change this to a decorator
         user = request.user
-        data = json.loads(request.body.decode('utf-8'))
+        if request.body:
+            data = json.loads(request.body.decode('utf-8'))
         
-        if request.method == 'GET':     #return user's projects      
-            projects = Project.objects.filter(userID=user)
-            return render(request, 'dashboard.html', {'projects':projects}, status=200)
+        if request.method == 'GET':     #return user's projects  
+            try:
+                #pull all projects which given user is a member and their role information
+                userProjects = UserProjectRole.objects.filter(userID=user).select_related('projectID')
+
+                projectsWithRole = [ {
+                    'project_id': project.projectID.id,
+                    'project_name': project.projectID.projectName,
+                    'description':project.projectID.description,
+                    'role': project.role
+                } 
+                for project in userProjects ]
+
+                toReturn = {
+                    'message':'Projects returned',
+                    'projects':projectsWithRole
+                }
+                return Response(toReturn, status=200)    
+                #projects = Project.objects.filter(userID=user)
+            
+            except:
+                return Response({'error':'No projects found'}, status=404)
 
         elif request.method == 'POST':  #create new project 
             try:
                 newProjectName = data.get('projectName')
+                newProjectDescription = data.get('description', "")
                 
                 if newProjectName:
-                    Project.objects.create(projectName=newProjectName)
+                    #create new project
+                    projectToCreate = Project.objects.create(projectName=newProjectName, description=newProjectDescription, userID=user)
+
+                    #assign user to that project as the host
+                    UserProjectRole.objects.create(role='host', userID=user, projectID=projectToCreate)
                 return Response({'message':'New project created successfully'}, status=200)
         
             except:
                 return Response({'error':'Project could not be created'}, status=400)
         
         elif request.method == 'PUT':   #modify a project field
-            try:
+            #try:
                 projectID = data.get('projectID')
                 projectToChange = Project.objects.get(id=projectID, userID=user)
                 
                 #changing project name
                 newProjectName = data.get('projectName', projectToChange.projectName)       #second value is the default if no parameter is sent in the JSON
                 newProjectDescription = data.get('description', projectToChange.description) 
-                
+
+                #set project changes
                 projectToChange.projectName = newProjectName
                 projectToChange.description = newProjectDescription
 
-                '''**Can add in stuff to change each field, especially when adding a collaborator/viewer**'''
+                # save project changes
+                projectToChange.save() 
 
-                
-                projectToChange.save()    
+                #if the user has added a user as a specific role
+                newUserRole = data.get('role')
+                if newUserRole: 
+                    userToAddID = data.get('userID')
+                    newUserToAdd = User.objects.get(id=userToAddID)
+                    #create instance to then add
+                    userRoleToCreate = UserProjectRole()
+                    userRoleToCreate.role = newUserRole
+                    userRoleToCreate.userID = newUserToAdd
+                    userRoleToCreate.projectID = projectToChange
+                    #save new role relation
+                    userRoleToCreate.save()
+
+
                 return Response({'message':'Project modified successfully'}, status=200)
-            except:
-                return Response({'error':'Project could not be deleted'}, status=404)
+            #except:
+                return Response({'error':'Project could not be modified'}, status=404)
            
         elif request.method == 'DELETE': #delete a project
             try:
+                projectID = data.get('projectID')
                 projectToDelete = Project.objects.get(id=projectID, userID=user)   
+
+                #delete project
                 projectToDelete.delete()
                 return Response({'message':'Project deleted successfully'}, status=200)
             except:
@@ -98,9 +142,30 @@ def dashboard(request):
     else: 
         return Response({'message':'Please log in'}) #placeholder
     
-    
+@api_view(['GET'])
 def projectDAW(request, projectID):
-    return Response(status=200)
+    if request.method == 'GET':
+        user = request.user
+        try:
+            #pull all projects which given user is a member and match the requested projectID, and their role information
+            userProject = UserProjectRole.objects.filter(userID=user, projectID=projectID).select_related('projectID')
+
+            projectWithRole = [ {
+                'project_id': project.projectID.id,
+                'project_name': project.projectID.projectName,
+                'description':project.projectID.description,
+                'role': project.role
+            } 
+            for project in userProject ]
+
+            toReturn = {
+                'message':'Project returned',
+                'project':projectWithRole
+            }
+            return Response(toReturn, status=200)
+        except:
+            return Response({'error':'Project not found'}, status=404)
+
 
 def login(request):
     return Response(status=200)

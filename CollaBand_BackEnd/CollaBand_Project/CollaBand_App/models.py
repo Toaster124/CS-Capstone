@@ -10,7 +10,8 @@ class Project(models.Model):
     creationdate = models.DateTimeField(default=now)
     description = models.CharField(max_length=250, default="")
     userID = models.ForeignKey(User, on_delete=models.CASCADE)
-    
+    data = models.JSONField()
+
     def __str__(self):
         return self.projectName
     
@@ -23,12 +24,11 @@ class UserProjectRole(models.Model):
     ]
     
     role = models.CharField(max_length=20, choices=projectRoles)
-    permissions = models.CharField(max_length=50)#save for later
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    #cut status
+    userID = models.ForeignKey(User, on_delete=models.PROTECT)
+    projectID = models.ForeignKey(Project, on_delete=models.PROTECT)
     
     def __str__(self):
-        return self.role
+        return str(self.userID) + " - " + self.role + " of project: " + str(self.projectID)
     
 
 #chat message that links to a Project instance
