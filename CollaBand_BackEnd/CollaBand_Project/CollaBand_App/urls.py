@@ -9,4 +9,6 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     path('login/', views.login, name='login'),
     path("chat-ex/", views.GetChat.as_view(), name="get-chats"),
+    path('Home/', views.home_view, name='home'),
+
 ]

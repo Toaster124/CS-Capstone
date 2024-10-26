@@ -33,6 +33,9 @@ from CollaBand_App.models import Project, UserProjectRole, User
 import json
 from rest_framework.decorators import api_view
 
+#for home
+def home_view(request):
+    return render(request, 'index.html')
 
 def homepage(request):
     return 200
