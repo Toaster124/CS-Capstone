@@ -157,7 +157,8 @@ def projectDAW(request, projectID):
                 'project_id': project.projectID.id,
                 'project_name': project.projectID.projectName,
                 'description':project.projectID.description,
-                'role': project.role
+                'role': project.role,
+                'data': project.projectID.data
             } 
             for project in userProject ]
 
