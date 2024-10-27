@@ -31,11 +31,15 @@ from django.views.generic.base import TemplateView
 from rest_framework.response import Response
 from CollaBand_App.models import Project, UserProjectRole, User
 import json
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate
+from .serializers import UserSerializer, ChatSerializer
+from .models import Project, Chat
 
 #for home
 def home_view(request):
-    return render(request, 'index.html')
+    return render(request, 'index_toros.html')
 
 def homepage(request):
     return 200
@@ -47,6 +51,46 @@ def homepage(request):
 class homepage(TemplateView):
     template_name='index.html'
     
+
+class RegisterView(generics.CreateAPIView):
+    queryset = User.objects.all()
+    permission_classes = [AllowAny]
+    serializer_class = UserSerializer
+
+# Custom Login View (to obtain auth token)
+class CustomAuthToken(ObtainAuthToken):
+    def post(self, request, *args, **kwargs):
+        email_or_username = request.data.get('email_or_username')
+        password = request.data.get('password')
+
+        # Try to authenticate with the provided credentials
+        user = authenticate(username=email_or_username, password=password)
+        if not user:
+            # If no user found by username, try email
+            try:
+                user_obj = User.objects.get(email=email_or_username)
+                user = authenticate(username=user_obj.username, password=password)
+            except User.DoesNotExist:
+                return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if user:
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({
+                'token': token.key,
+                'user': {
+                    'id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                }
+            }, status=status.HTTP_200_OK)
+
+        return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+# Login View (Retained for completeness)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login(request):
+    return Response({'message': 'Login endpoint'}, status=status.HTTP_200_OK)
 
 #Dashboard View
 @api_view(['GET', 'PUT', 'POST', 'DELETE'])
