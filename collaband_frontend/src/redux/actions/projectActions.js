@@ -4,7 +4,7 @@ import api from '../../utils/api';
 export const fetchProjects = () => async dispatch => {
   try {
     const token = localStorage.getItem('token');
-    const response = await api.get('/api/collaband/dashboard/', {
+    const response = await api.get('collaband/dashboard/', {
       headers: {
         Authorization: `Token ${token}`, // Make sure this header is set correctly
       },
