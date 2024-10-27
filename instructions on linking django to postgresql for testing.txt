@@ -5,7 +5,7 @@ creation of a DB named "CollaBand_DB" in PostgreSQL
 
 from the file sitting above the project, in our case it should be CS-Capstone-main,
 run this code in the terminal:
-& "C:\Program Files\Python3.12.6" -m venv env
+& "C:\Program Files\Python3.12.6\python.exe" -m venv env
 this should create a folder called env which should contain 'Scripts' within it
 
 To activate the virtual environment use this code:
@@ -17,8 +17,6 @@ and then try again.
 
 run the following lines:
 pip install django
-
-pip uninstall django-filters
 
 pip install django-filter
 pip install django djangorestframework
