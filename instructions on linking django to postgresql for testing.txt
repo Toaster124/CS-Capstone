@@ -18,8 +18,6 @@ and then try again.
 run the following lines:
 pip install django
 
-pip uninstall django-filters
-
 pip install django-filter
 pip install django djangorestframework
 pip install psycopg2
