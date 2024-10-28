@@ -1,4 +1,5 @@
 // src/pages/Dashboard.js
+
 import React, { useEffect, useState } from 'react';
 import {
   Typography,
@@ -17,8 +18,17 @@ function Dashboard() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
+        // Updated endpoint to match back-end
         const response = await api.get('/api/collaband/dashboard/');
-        setProjects(response.data.projects);
+        const projectsData = response.data.projects;
+        // Adjust the structure based on back-end response
+        const formattedProjects = projectsData.map(item => ({
+          id: item.project_id,
+          projectName: item.project_name,
+          description: item.description,
+          role: item.role,
+        }));
+        setProjects(formattedProjects);
       } catch (err) {
         console.error('Failed to fetch projects', err);
       }
@@ -49,7 +59,7 @@ function Dashboard() {
           >
             <ListItemText
               primary={project.projectName}
-              secondary={project.description}
+              secondary={`${project.description} (Role: ${project.role})`}
             />
           </ListItem>
         ))}

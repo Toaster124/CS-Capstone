@@ -1,4 +1,5 @@
 // src/utils/api.js
+
 import axios from 'axios';
 
 const api = axios.create({
@@ -9,7 +10,7 @@ api.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token');
     if (token) {
-      config.headers.Authorization = `Token ${token}`; // Adjust based on your back-end authentication
+      config.headers.Authorization = `Token ${token}`; // Adjusted to use backticks
     }
     return config;
   },

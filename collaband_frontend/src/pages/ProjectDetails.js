@@ -1,4 +1,5 @@
 // src/pages/ProjectDetails.js
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Typography, Container, Button, Box } from '@mui/material';
@@ -13,9 +14,15 @@ function ProjectDetails() {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const response = await api.get(`/api/collaband/projects/${projectId}/`);
-        setProject(response.data.project);
-        setUserRole(response.data.userRole); // Assuming the back end provides userRole
+        // Updated endpoint to match back-end
+        const response = await api.get(`/api/collaband/project-${projectId}/`);
+        const projectData = response.data.project[0]; // Adjusted to match back-end response structure
+        setProject({
+          id: projectData.project_id,
+          projectName: projectData.project_name,
+          description: projectData.description,
+        });
+        setUserRole(projectData.role);
       } catch (err) {
         console.error('Failed to fetch project details', err);
       }
@@ -25,7 +32,10 @@ function ProjectDetails() {
 
   const handleDelete = async () => {
     try {
-      await api.delete(`/collaband/projects/${projectId}/`);
+      // Deletion is handled via the dashboard endpoint
+      await api.delete('/api/collaband/dashboard/', {
+        data: { projectID: projectId },
+      });
       navigate('/dashboard');
     } catch (err) {
       console.error('Failed to delete project', err);
@@ -49,13 +59,13 @@ function ProjectDetails() {
           variant="contained"
           color="primary"
           component={RouterLink}
-          to={`/projects/${projectId}/music-editor`}
+          to={`/projects/${project.id}/music-editor`}
           sx={{ mr: 2 }}
         >
           Open Music Editor
         </Button>
         {/* Conditionally render buttons based on userRole */}
-        {(userRole === 'owner' || userRole === 'admin') && (
+        {(userRole === 'host' || userRole === 'collaborator') && (
           <Button variant="outlined" color="secondary" onClick={handleDelete}>
             Delete Project
           </Button>
