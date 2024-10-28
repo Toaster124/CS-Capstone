@@ -5,7 +5,6 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { login } from '../redux/actions/authActions';
 
-
 function Login() {
   const [emailOrUsername, setEmailOrUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -13,9 +12,6 @@ function Login() {
   const isAuthenticated = useSelector(state => state.auth.isAuthenticated);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
-  
-  
   const handleSubmit = e => {
     e.preventDefault();
     dispatch(login(emailOrUsername, password));
@@ -64,7 +60,7 @@ function Login() {
         </form>
         <Box mt={2}>
           <Typography variant="body2">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <RouterLink to="/register">Register here</RouterLink>.
           </Typography>
         </Box>
