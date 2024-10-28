@@ -14,7 +14,9 @@ function MusicEditor() {
   const wsRef = useRef(null);
   const [instrument, setInstrument] = useState(null);
   const [instrumentName, setInstrumentName] = useState('acoustic_grand_piano');
-  const [audioContext] = useState(new (window.AudioContext || window.webkitAudioContext)());
+  const [audioContext] = useState(
+    new (window.AudioContext || window.webkitAudioContext)(),
+  );
 
   // Load the selected instrument with error handling
   useEffect(() => {

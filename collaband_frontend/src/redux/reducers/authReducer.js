@@ -1,7 +1,9 @@
 // src/redux/reducers/authReducer.js
 const initialState = {
   isAuthenticated: !!localStorage.getItem('token'),
-  user: localStorage.getItem('token') ? JSON.parse(localStorage.getItem('user')) : null,
+  user: localStorage.getItem('token')
+    ? JSON.parse(localStorage.getItem('user'))
+    : null,
   error: null,
   loading: false,
 };
@@ -37,4 +39,3 @@ export default function authReducer(state = initialState, action) {
       return state;
   }
 }
-
