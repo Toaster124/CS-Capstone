@@ -23,7 +23,7 @@ from CollaBand_App import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/collaband/', include('CollaBand_App.urls')),
+    path('collaband/', include('CollaBand_App.urls')),
     path('api-token-auth/', drf_views.obtain_auth_token, name='api_token_auth'),  # Token authentication
     path('auth/register/', views.RegisterView.as_view(), name='register'),  # Registration endpoint
     path('auth/login/', views.CustomAuthToken.as_view(), name='login'),  # Login endpoint
