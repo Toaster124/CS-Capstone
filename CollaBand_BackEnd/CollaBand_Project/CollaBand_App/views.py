@@ -140,7 +140,7 @@ def dashboard(request):
 
                     #assign user to that project as the host
                     UserProjectRole.objects.create(role='host', userID=user, projectID=projectToCreate)
-                return Response({'message':'New project created successfully'}, status=201)
+                return Response({'message':'New project created successfully'}, status=200)
         
             except:
                 return Response({'error':'Project could not be created'}, status=400)
