@@ -1,3 +1,4 @@
+
 import socketio
 from django.conf import settings
 import json
@@ -28,22 +29,6 @@ async def connect(sid, env):
     print("Room: ", sio.rooms(sid))
     await sio.emit("connect", f"Connected as {sid}")
 
-    
-'''   
-# on sio connection:
-async def connect(sid, env, auth):
-    print("CONNECTED")
-    if auth:
-        #Manually set for testing
-        #chat_id = auth["chat_id"]
-        projectID = 1
-        print("SocketIO connect")
-        sio.enter_room(sid, projectID)
-        print("Room: ", sio.rooms(sid))
-        await sio.emit("connect", f"Connected as {sid}")
-    else:
-        raise ConnectionRefusedError("No auth")
-'''    
 
 def store_and_return_message(data):
     
@@ -61,10 +46,7 @@ def store_and_return_message(data):
     projectData = data["data"]
     sender = get_object_or_404(User, pk=senderID)
     #if the logged-in sender does not match the message's sender
-    ''' commented out for testing
-    if senderID != sender:
-        return None
-    '''
+    
     # else
     # get the project 
     project = get_object_or_404(Project, pk=projectID)
@@ -98,8 +80,25 @@ async def print_message(sid, data):
         print("Project.data: ", project.data)
         print("Room: ", sio.rooms(sid))
         await sio.emit("new_message", data, room=str(project.id))
-        #print("Room: ", sio.rooms(sid))
-        #await sio.(project.id).emit("new_message", data)
+
+#on reception of a 'join_room' event
+@sio.on("join_room")
+async def print_join(sid, data):
+    print("Socket ID", sid)
+    
+    #convert JSON string to python dict
+    jsonData=json.loads(data)
+    
+    roomToJoin = jsonData["projectID"]
+    
+    currentRoom = sio.rooms(sid)[0]
+    if currentRoom != roomToJoin:
+        print(f"Leaving room: {currentRoom} and joining room: {roomToJoin}")
+        await sio.leave_room(sid, currentRoom) 
+        await sio.enter_room(sid, str(roomToJoin))
+        
+    print("Room: ", sio.rooms(sid))
+    await sio.emit("new_join", data, room=str(roomToJoin))
 
 
 @sio.on("disconnect")

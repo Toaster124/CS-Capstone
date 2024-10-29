@@ -112,11 +112,13 @@ def dashboard(request):
                 userProjects = UserProjectRole.objects.filter(userID=user).select_related('projectID')
 
                 projectsWithRole = [ {
+                    "project" : {
                     'project_id': project.projectID.id,
                     'project_name': project.projectID.projectName,
                     'description':project.projectID.description,
-                    'role': project.role
-                } 
+                    },
+                    'userRole': project.role
+                }
                 for project in userProjects ]
 
                 toReturn = {
@@ -146,7 +148,7 @@ def dashboard(request):
                 return Response({'error':'Project could not be created'}, status=400)
         
         elif request.method == 'PUT':   #modify a project field
-            #try:
+            try:
                 projectID = data.get('projectID')
                 projectToChange = Project.objects.get(id=projectID, userID=user)
                 
@@ -176,7 +178,7 @@ def dashboard(request):
 
 
                 return Response({'message':'Project modified successfully'}, status=200)
-            #except:
+            except:
                 return Response({'error':'Project could not be modified'}, status=404)
            
         elif request.method == 'DELETE': #delete a project
@@ -204,17 +206,19 @@ def projectDAW(request, projectID):
             userProject = UserProjectRole.objects.filter(userID=user, projectID=projectID).select_related('projectID')
 
             projectWithRole = [ {
-                'project_id': project.projectID.id,
-                'project_name': project.projectID.projectName,
-                'description':project.projectID.description,
-                'role': project.role,
-                'data': project.projectID.data
-            } 
-            for project in userProject ]
+                    "project" : {
+                    'project_id': project.projectID.id,
+                    'project_name': project.projectID.projectName,
+                    'description':project.projectID.description,
+                    'data': project.projectID.data
+                    },
+                    'userRole': project.role
+                }
+                for project in userProject ]
 
             toReturn = {
                 'message':'Project returned',
-                'project':projectWithRole
+                'projectWithRole':projectWithRole
             }
             return Response(toReturn, status=200)
         except:
