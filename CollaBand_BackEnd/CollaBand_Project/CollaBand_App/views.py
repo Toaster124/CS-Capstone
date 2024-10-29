@@ -197,7 +197,7 @@ def dashboard(request):
     else: 
         return Response({'message':'Please log in'}) #placeholder
     
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 def projectDAW(request, projectID):
     if request.method == 'GET':
         user = request.user
@@ -223,6 +223,20 @@ def projectDAW(request, projectID):
             return Response(toReturn, status=200)
         except:
             return Response({'error':'Project not found'}, status=404)
+        
+        
+    elif request.method == 'DELETE': #delete the project
+            try:
+                projectToDelete = Project.objects.get(id=projectID, userID=user)   
+                if projectToDelete:
+                #delete project
+                    projectToDelete.delete()
+                    return Response({'message':'Project deleted successfully'}, status=200)
+            except:
+                return Response({'error':'Project not found.'}, status=404)
+        
+    else:
+        return HttpResponseNotAllowed(['GET', 'DELETE'])
 
 
 def login(request):
