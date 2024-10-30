@@ -1,28 +1,38 @@
 // src/pages/ProjectDetails.js
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
-import { Typography, Container, Button, Box } from '@mui/material';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  Typography,
+  Container,
+  Button,
+  Box,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from '@mui/material';
 import api from '../utils/api';
 
 function ProjectDetails() {
   const { projectId } = useParams();
   const [userRole, setUserRole] = useState('');
   const [project, setProject] = useState(null);
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        // Updated endpoint to match back-end
         const response = await api.get(`/api/collaband/project-${projectId}/`);
-        const projectData = response.data.project[0]; // Adjusted to match back-end response structure
+        const projectData = response.data.project;
         setProject({
           id: projectData.project_id,
           projectName: projectData.project_name,
           description: projectData.description,
         });
-        setUserRole(projectData.role);
+        setUserRole(response.data.userRole);
       } catch (err) {
         console.error('Failed to fetch project details', err);
       }
@@ -32,10 +42,7 @@ function ProjectDetails() {
 
   const handleDelete = async () => {
     try {
-      // Deletion is handled via the dashboard endpoint
-      await api.delete('/api/collaband/dashboard/', {
-        data: { projectID: projectId },
-      });
+      await api.delete(`/api/collaband/project-${projectId}/`);
       navigate('/dashboard');
     } catch (err) {
       console.error('Failed to delete project', err);
@@ -58,17 +65,47 @@ function ProjectDetails() {
         <Button
           variant="contained"
           color="primary"
-          component={RouterLink}
-          to={`/projects/${project.id}/music-editor`}
+          href={`/projects/${project.id}/music-editor`}
           sx={{ mr: 2 }}
         >
           Open Music Editor
         </Button>
         {/* Conditionally render buttons based on userRole */}
-        {(userRole === 'host' || userRole === 'collaborator') && (
-          <Button variant="outlined" color="secondary" onClick={handleDelete}>
-            Delete Project
-          </Button>
+        {userRole === 'host' && (
+          <>
+            <Button
+              variant="outlined"
+              color="secondary"
+              onClick={() => setOpenDeleteDialog(true)}
+            >
+              Delete Project
+            </Button>
+
+            {/* Confirm Deletion Dialog */}
+            <Dialog
+              open={openDeleteDialog}
+              onClose={() => setOpenDeleteDialog(false)}
+            >
+              <DialogTitle>Delete Project</DialogTitle>
+              <DialogContent>
+                <DialogContentText>
+                  Are you sure you want to delete this project? This action
+                  cannot be undone.
+                </DialogContentText>
+              </DialogContent>
+              <DialogActions>
+                <Button
+                  onClick={() => setOpenDeleteDialog(false)}
+                  color="primary"
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleDelete} color="secondary">
+                  Delete
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </>
         )}
       </Box>
     </Container>

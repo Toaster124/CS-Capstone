@@ -1,5 +1,6 @@
 // src/components/Header.js
-import React, { useEffect } from 'react';
+
+import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../redux/actions/authActions';
 import { AppBar, Toolbar, Typography, Button } from '@mui/material';
@@ -14,10 +15,6 @@ function Header() {
     dispatch(logout());
     navigate('/');
   };
-
-  useEffect(() => {
-    console.log('isAuthenticated changed:', isAuthenticated);
-  }, [isAuthenticated]);
 
   return (
     <AppBar position="static">

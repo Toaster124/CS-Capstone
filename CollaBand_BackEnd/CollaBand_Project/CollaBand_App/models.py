@@ -1,8 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.timezone import now
-
-# Create your models here.
+import uuid
 
 
 class Project(models.Model):
@@ -10,7 +9,7 @@ class Project(models.Model):
     creationdate = models.DateTimeField(default=now)
     description = models.CharField(max_length=250, default="")
     userID = models.ForeignKey(User, on_delete=models.CASCADE)
-    data = models.JSONField()
+    data = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
         return self.projectName
@@ -28,7 +27,7 @@ class UserProjectRole(models.Model):
     projectID = models.ForeignKey(Project, on_delete=models.PROTECT)
     
     def __str__(self):
-        return str(self.userID) + " - " + self.role + " of project: " + str(self.projectID)
+        return f"{self.userID} - {self.role} of project: {self.projectID}"
     
 
 #chat message that links to a Project instance
@@ -97,17 +96,19 @@ class VersionControl(models.Model):
     
 
 #Below - socket.io tutorial models
-import uuid
 
 class Chat(models.Model):
     initiator = models.ForeignKey(
         User, on_delete=models.DO_NOTHING, related_name="initiator_chat"
     )
     acceptor = models.ForeignKey(
-        User, on_delete=models.DO_NOTHING, related_name="acceptor_name",
+        User, on_delete=models.DO_NOTHING, related_name="acceptor_chat",
         null=True
     )
     short_id = models.CharField(max_length=255, default=uuid.uuid4, unique=True)
+
+    def __str__(self):
+        return f"Chat between {self.initiator} and {self.acceptor}"
 
 
 class ChatMsg(models.Model):
@@ -115,3 +116,6 @@ class ChatMsg(models.Model):
     sender = models.ForeignKey(User, on_delete=models.DO_NOTHING)
     text = models.TextField()
     created_at = models.DateTimeField(default=now)
+
+    def __str__(self):
+        return f"Message from {self.sender} in chat {self.chat.short_id}"
