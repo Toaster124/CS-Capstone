@@ -59,46 +59,60 @@ def store_and_return_message(data):
 
 #on reception of a 'message' event
 @sio.on("message")
-async def print_message(sid, data):
+async def handle_message(sid, data):
     print("Socket ID", sid)
     
-
-    #run the function to perform the back-end work
-    project = await sync_to_async(store_and_return_message, thread_sensitive=True)(data) 
-    
-    currentRoom = sio.rooms(sid)[0]
-    if currentRoom != project.id:
-        print(f"Leaving room: {currentRoom} and joining room: {project.id}")
-        await sio.leave_room(sid, currentRoom) 
-        await sio.enter_room(sid, str(project.id))
-
-    #if sender info did not match
-    if project == None:
-        print("Attempted spoofing detected. No changes made")
+    # Deserialize data if necessary
+    if isinstance(data, str):
+        jsonData = json.loads(data)
     else:
-        #notify other clients in a project of a change in project data
-        print("Project.data: ", project.data)
-        print("Room: ", sio.rooms(sid))
-        await sio.emit("new_message", data, room=str(project.id))
+        jsonData = data
 
-#on reception of a 'join_room' event
+    # Run the function to perform the back-end work
+    project = await sync_to_async(store_and_return_message, thread_sensitive=True)(jsonData) 
+    
+    if project is None:
+        print("Attempted spoofing detected. No changes made")
+        return
+
+    project_id_str = str(project.id)
+    rooms = await sio.rooms(sid)
+
+    # Ensure the user is in the correct room
+    if project_id_str not in rooms:
+        print(f"Adding sid to room: {project_id_str}")
+        await sio.enter_room(sid, project_id_str)
+
+    # Notify other clients in the project room
+    print("Project.data: ", project.data)
+    await sio.emit("new_message", jsonData, room=project_id_str)
+
+
+# On reception of a 'join_room' event
 @sio.on("join_room")
-async def print_join(sid, data):
+async def join_room(sid, data):
     print("Socket ID", sid)
     
-    #convert JSON string to python dict
-    jsonData=json.loads(data)
+    # Convert JSON string to python dict if necessary
+    if isinstance(data, str):
+        jsonData = json.loads(data)
+    else:
+        jsonData = data
     
-    roomToJoin = jsonData["projectID"]
+    roomToJoin = str(jsonData["projectID"])
     
-    currentRoom = sio.rooms(sid)[0]
-    if currentRoom != roomToJoin:
-        print(f"Leaving room: {currentRoom} and joining room: {roomToJoin}")
-        await sio.leave_room(sid, currentRoom) 
-        await sio.enter_room(sid, str(roomToJoin))
-        
-    print("Room: ", sio.rooms(sid))
-    await sio.emit("new_join", data, room=str(roomToJoin))
+    # Leave all rooms except the default room
+    rooms = await sio.rooms(sid)
+    for room in rooms:
+        if room != sid:
+            await sio.leave_room(sid, room)
+    
+    # Join the new room
+    await sio.enter_room(sid, roomToJoin)
+    
+    print(f"Joined room: {roomToJoin}")
+    await sio.emit("new_join", jsonData, room=roomToJoin)
+
 
 
 @sio.on("disconnect")

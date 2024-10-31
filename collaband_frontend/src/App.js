@@ -1,4 +1,5 @@
 // src/App.js
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CssBaseline } from '@mui/material';
@@ -8,7 +9,6 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import CreateProject from './pages/CreateProject';
 import MusicEditor from './pages/MusicEditor';
 import Profile from './pages/Profile';
 import ProjectDetails from './pages/ProjectDetails';
@@ -34,14 +34,6 @@ function App() {
           element={
             <ProtectedRoute>
               <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/projects/new"
-          element={
-            <ProtectedRoute>
-              <CreateProject />
             </ProtectedRoute>
           }
         />

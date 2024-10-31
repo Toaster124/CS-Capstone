@@ -1,4 +1,5 @@
 // src/redux/actions/authActions.js
+
 import api from '../../utils/api';
 
 export const login = (emailOrUsername, password) => async dispatch => {
@@ -9,6 +10,7 @@ export const login = (emailOrUsername, password) => async dispatch => {
       password,
     });
     localStorage.setItem('token', response.data.token);
+    localStorage.setItem('user', JSON.stringify(response.data.user));
     dispatch({
       type: 'LOGIN_SUCCESS',
       payload: { user: response.data.user },

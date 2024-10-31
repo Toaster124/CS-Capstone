@@ -1,33 +1,40 @@
+# CollaBand_App/serializers.py
+
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import Chat, ChatMsg
+from .models import Project, UserProjectRole, Chat, ChatMsg
 
 class UserSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'password')  # Make sure 'password' is included
-        extra_kwargs = {
-            'password': {'write_only': True},
-        }
-        
+        fields = ['id', 'username', 'email', 'password']
+
     def create(self, validated_data):
-        # Create user with a hashed password
-        user = User.objects.create(
+        user = User.objects.create_user(
             username=validated_data['username'],
-            email=validated_data['email']
+            email=validated_data.get('email', ''),
+            password=validated_data['password']
         )
-        user.set_password(validated_data['password'])
-        user.save()
         return user
 
-class MessageSerializer(serializers.ModelSerializer):
+class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ChatMsg
-        exclude = ("chat",)
+        model = Project
+        fields = '__all__'
 
+class UserProjectRoleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProjectRole
+        fields = '__all__'
 
 class ChatSerializer(serializers.ModelSerializer):
-    messages = MessageSerializer(many=True, read_only=True)
     class Meta:
         model = Chat
-        fields = ["messages", "short_id"]
+        fields = '__all__'
+
+class ChatMsgSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ChatMsg
+        exclude = ('chat',)
