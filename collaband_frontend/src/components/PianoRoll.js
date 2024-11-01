@@ -4,7 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import './PianoRoll.css';
 
-function PianoRoll({ notes, onAddNote }) {
+function PianoRoll({ notes, onAddNote, onDeleteNote }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -41,32 +41,67 @@ function PianoRoll({ notes, onAddNote }) {
         'G#4': 80,
         'G4': 100,
         'F#4': 120,
-        'F4': 140,
-        'E4': 160,
-        'D#4': 180,
-        'D4': 200,
-        'C#4': 220,
-        'C4': 240,
+        // Add more notes as needed
       };
 
-      const y = noteMapping[note] || 0;
-      const x = 0; // You can map time to x position
+      const y = noteMapping[note.pitch];
+      const x = note.start * 20; // Assuming note.start is in beats
 
-      ctx.fillStyle = '#ff0000';
-      ctx.fillRect(x, y, 20, 20);
+      ctx.fillStyle = 'blue';
+      ctx.fillRect(x, y, note.duration * 20, 20); // Assuming note.duration is in beats
     });
-  }, [notes]);
 
-  return (
-    <div className="piano-roll">
-      <canvas ref={canvasRef} width={800} height={300} />
-    </div>
-  );
+    // Add click event listener to canvas
+    const handleClick = (event) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      // Determine clicked note
+      const clickedNote = notes.find((note) => {
+        const noteMapping = {
+          'C5': 0,
+          'B4': 20,
+          'A#4': 40,
+          'A4': 60,
+          'G#4': 80,
+          'G4': 100,
+          'F#4': 120,
+          // Add more notes as needed
+        };
+
+        const noteY = noteMapping[note.pitch];
+        const noteX = note.start * 20;
+        const noteWidth = note.duration * 20;
+
+        return x >= noteX && x <= noteX + noteWidth && y >= noteY && y <= noteY + 20;
+      });
+
+      if (clickedNote) {
+        onDeleteNote(clickedNote);
+      }
+    };
+
+    canvas.addEventListener('click', handleClick);
+
+    return () => {
+      canvas.removeEventListener('click', handleClick);
+    };
+  }, [notes, onDeleteNote]);
+
+  return <canvas ref={canvasRef} width={800} height={200}></canvas>;
 }
 
 PianoRoll.propTypes = {
-  notes: PropTypes.arrayOf(PropTypes.string).isRequired,
+  notes: PropTypes.arrayOf(
+    PropTypes.shape({
+      pitch: PropTypes.string.isRequired,
+      start: PropTypes.number.isRequired,
+      duration: PropTypes.number.isRequired,
+    })
+  ).isRequired,
   onAddNote: PropTypes.func,
+  onDeleteNote: PropTypes.func.isRequired,
 };
 
 export default PianoRoll;

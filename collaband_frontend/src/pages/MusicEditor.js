@@ -27,16 +27,53 @@ function MusicEditor() {
   /**
    * Memoize instrumentOptions to prevent unnecessary re-creations on each render.
    */
-  const instrumentOptions = useMemo(
-    () => ({
-      piano: new Tone.PolySynth(Tone.Synth).toDestination(),
-      violin: new Tone.PolySynth(Tone.Synth).toDestination(),
-      trumpet: new Tone.PolySynth(Tone.Synth).toDestination(),
-      guitar: new Tone.PolySynth(Tone.Synth).toDestination(),
-      // Add more instruments as needed
-    }),
-    []
-  );
+  // src/pages/MusicEditor.js
+
+const instrumentOptions = useMemo(() => ({
+  piano: new Tone.Sampler({
+    urls: {
+      C4: 'C4.mp3',
+      'D#4': 'Ds4.mp3',
+      'F#4': 'Fs4.mp3',
+      A4: 'A4.mp3',
+    },
+    baseUrl: 'https://tonejs.github.io/audio/salamander/',
+  }).toDestination(),
+  violin: new Tone.Synth({
+    oscillator: {
+      type: 'sawtooth',
+    },
+    envelope: {
+      attack: 0.5,
+      decay: 0.1,
+      sustain: 0.7,
+      release: 1,
+    },
+  }).toDestination(),
+  trumpet: new Tone.Synth({
+    oscillator: {
+      type: 'square',
+    },
+    envelope: {
+      attack: 0.05,
+      decay: 0.2,
+      sustain: 0.5,
+      release: 1,
+    },
+  }).toDestination(),
+  guitar: new Tone.Sampler({
+    urls: {
+      E2: 'E2.mp3',
+      A2: 'A2.mp3',
+      D3: 'D3.mp3',
+      G3: 'G3.mp3',
+      B3: 'B3.mp3',
+      E4: 'E4.mp3',
+    },
+    baseUrl: 'https://your-sample-url/guitar/', // Replace with your actual sample URL
+  }).toDestination(),
+}), []);
+
 
   /**
    * Define playNoteLocally before it's used in useEffect and other hooks.
@@ -82,6 +119,7 @@ function MusicEditor() {
     },
     [playNoteLocally]
   );
+  
 
   /**
    * Load the selected instrument whenever instrumentName or instrumentOptions change.
