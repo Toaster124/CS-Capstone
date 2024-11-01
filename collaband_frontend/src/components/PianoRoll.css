@@ -1,0 +1,17 @@
+/* src/components/PianoRoll.css */
+
+.piano-roll {
+    width: 100%;
+    height: 300px;
+    background-color: #f0f0f0;
+    overflow: auto;
+    position: relative;
+    margin-top: 20px;
+  }
+  
+  .piano-roll h3 {
+    text-align: center;
+    padding-top: 50px;
+    color: #888;
+  }
+  

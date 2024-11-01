@@ -3,6 +3,7 @@ from . import views  # Import views from the app
 
 urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('project-<int:projectID>/notes/', views.project_notes, name='project_notes'),
     path('project-<int:projectID>/', views.projectDAW, name='projectDAW'),
     path('user-settings/', views.userSettings, name='userSettings'),
     path('contact/', views.contact, name='contact'),

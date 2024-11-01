@@ -1,0 +1,73 @@
+/* src/components/VirtualKeyboard.css */
+
+.keyboard {
+  position: relative;
+  width: 320px; /* 8 white keys x 40px */
+  height: 200px;
+  margin: 20px auto;
+  user-select: none;
+}
+
+.key {
+  position: absolute;
+  bottom: 0;
+  width: 40px;
+  height: 150px;
+  border: 1px solid #000;
+  box-sizing: border-box;
+  cursor: pointer;
+}
+
+.key.white {
+  background: #fff;
+  z-index: 1;
+}
+
+.key.black {
+  width: 30px;
+  height: 100px;
+  background: #000;
+  z-index: 2;
+  margin-left: -15px;
+}
+
+.key.white.active {
+  background: #ccc; /* Light gray for active state */
+}
+
+.key.black.active {
+  background: #555; /* Darker gray for active state */
+}
+
+/* Positioning white keys */
+.key.white:nth-child(1) {
+  left: 0px;
+}
+
+.key.white:nth-child(2) {
+  left: 40px;
+}
+
+.key.white:nth-child(3) {
+  left: 80px;
+}
+
+.key.white:nth-child(4) {
+  left: 120px;
+}
+
+.key.white:nth-child(5) {
+  left: 160px;
+}
+
+.key.white:nth-child(6) {
+  left: 200px;
+}
+
+.key.white:nth-child(7) {
+  left: 240px;
+}
+
+.key.white:nth-child(8) {
+  left: 280px;
+}

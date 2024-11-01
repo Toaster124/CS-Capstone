@@ -120,6 +120,30 @@ def dashboard(request):
     else:
         return HttpResponseNotAllowed(['GET', 'POST', 'PUT', 'DELETE'])
 
+@api_view(['GET', 'POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def project_notes(request, projectID):
+    user = request.user
+    try:
+        project = Project.objects.get(id=projectID)
+    except Project.DoesNotExist:
+        return Response({'error': 'Project not found.'}, status=404)
+
+    # Check if the user is associated with the project
+    if not UserProjectRole.objects.filter(userID=user, projectID=project).exists():
+        return Response({'error': 'You are not associated with this project.'}, status=403)
+
+    if request.method == 'GET':
+        notes = project.data.get('notes', [])
+        return Response({'notes': notes}, status=200)
+
+    elif request.method == 'POST':
+        notes = request.data.get('notes', [])
+        project.data['notes'] = notes
+        project.save()
+        return Response({'message': 'Notes saved successfully.'}, status=200)
+
 # Project Details View
 @api_view(['GET', 'DELETE'])
 @authentication_classes([TokenAuthentication])

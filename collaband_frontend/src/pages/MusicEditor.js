@@ -1,123 +1,273 @@
 // src/pages/MusicEditor.js
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from 'react';
 import { useParams } from 'react-router-dom';
 import { initWebSocket } from '../utils/websocket';
-import { Typography } from '@mui/material';
+import { Typography, ButtonGroup, Button } from '@mui/material';
 import VirtualKeyboard from '../components/VirtualKeyboard';
 import MusicNotation from '../components/MusicNotation';
-import Soundfont from 'soundfont-player';
+import PianoRoll from '../components/PianoRoll';
+import * as Tone from 'tone';
+import api from '../utils/api';
 
 function MusicEditor() {
   const [notes, setNotes] = useState([]);
   const { projectId } = useParams();
   const wsRef = useRef(null);
   const [instrument, setInstrument] = useState(null);
-  const [instrumentName, setInstrumentName] = useState('acoustic_grand_piano');
-  const [audioContext] = useState(
-    new (window.AudioContext || window.webkitAudioContext)(),
+  const [instrumentName, setInstrumentName] = useState('piano');
+  const [viewMode, setViewMode] = useState('staff'); // 'staff' or 'pianoRoll'
+
+  /**
+   * Memoize instrumentOptions to prevent unnecessary re-creations on each render.
+   */
+  const instrumentOptions = useMemo(
+    () => ({
+      piano: new Tone.PolySynth(Tone.Synth).toDestination(),
+      violin: new Tone.PolySynth(Tone.Synth).toDestination(),
+      trumpet: new Tone.PolySynth(Tone.Synth).toDestination(),
+      guitar: new Tone.PolySynth(Tone.Synth).toDestination(),
+      // Add more instruments as needed
+    }),
+    []
   );
 
-  // Load the selected instrument with error handling
-  useEffect(() => {
-    Soundfont.instrument(audioContext, instrumentName)
-      .then(inst => {
-        setInstrument(inst);
-      })
-      .catch(error => {
-        console.error('Failed to load instrument:', error);
-      });
-  }, [audioContext, instrumentName]);
+  /**
+   * Define playNoteLocally before it's used in useEffect and other hooks.
+   */
+  const playNoteLocally = useCallback(
+    (note, velocity) => {
+      console.log(`Playing note: ${note}, Velocity: ${velocity}`);
+      if (instrument) {
+        // Ensure AudioContext is started
+        if (Tone.context.state !== 'running') {
+          Tone.start();
+        }
+        // Trigger the attack and release of the note
+        instrument.triggerAttackRelease(
+          note,
+          '8n',
+          Tone.now(),
+          velocity / 127
+        );
+      }
+      // Update notation
+      setNotes((prevNotes) => [...prevNotes, note]);
+    },
+    [instrument]
+  );
 
-  // Initialize WebSocket
+  /**
+   * Handle playing a note locally and sending it to the server
+   */
+  const playNote = useCallback(
+    (note, velocity) => {
+      // Send note to server
+      const message = {
+        type: 'notePlayed',
+        data: { note, velocity },
+      };
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify(message));
+      }
+
+      // Play note locally
+      playNoteLocally(note, velocity);
+    },
+    [playNoteLocally]
+  );
+
+  /**
+   * Load the selected instrument whenever instrumentName or instrumentOptions change.
+   */
+  useEffect(() => {
+    const loadInstrument = async () => {
+      try {
+        // Dispose previous instrument if exists
+        if (instrument) {
+          instrument.dispose();
+        }
+
+        // Create and set the new instrument
+        const selectedInstrument = instrumentOptions[instrumentName];
+        setInstrument(selectedInstrument);
+      } catch (error) {
+        console.error(`Failed to load instrument ${instrumentName}:`, error);
+      }
+    };
+
+    loadInstrument();
+
+    // Clean up function
+    return () => {
+      if (instrument) {
+        instrument.dispose();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [instrumentName, instrumentOptions]);
+
+  /**
+   * Initialize WebSocket connection
+   */
   useEffect(() => {
     const ws = initWebSocket(projectId);
     wsRef.current = ws;
 
-    ws.onmessage = event => {
+    ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
       if (message.type === 'notePlayed') {
         playNoteLocally(message.data.note, message.data.velocity);
       }
     };
 
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
     return () => {
       ws.close();
     };
+  }, [projectId, playNoteLocally]);
+
+  /**
+   * Handle instrument selection change
+   */
+  const handleInstrumentChange = useCallback((event) => {
+    setInstrumentName(event.target.value);
+    // Optionally, reset notes when instrument changes
+    // setNotes([]);
+  }, []);
+
+  /**
+   * Load existing notes when the component mounts
+   */
+  useEffect(() => {
+    const fetchNotes = async () => {
+      try {
+        const response = await api.get(
+          `/api/collaband/project-${projectId}/notes/`
+        );
+        setNotes(response.data.notes);
+      } catch (error) {
+        console.error('Failed to fetch notes:', error);
+      }
+    };
+
+    fetchNotes();
   }, [projectId]);
 
-  // Handle playing a note locally and sending it to the server
-  const playNote = (note, velocity) => {
-    // Send note to server
-    const message = {
-      type: 'notePlayed',
-      data: { note, velocity },
-    };
-    wsRef.current.send(JSON.stringify(message));
-
-    // Play note locally
-    playNoteLocally(note, velocity);
-  };
-
-  // Handle playing a note received from the server
-  const playNoteLocally = (note, velocity) => {
-    if (instrument) {
-      // Check if the AudioContext is suspended and resume it
-      if (audioContext.state === 'suspended') {
-        audioContext.resume();
+  /**
+   * Save notes whenever they change (optional)
+   */
+  useEffect(() => {
+    const saveNotes = async () => {
+      try {
+        await api.post(`/api/collaband/project-${projectId}/notes/`, { notes });
+      } catch (error) {
+        console.error('Failed to save notes:', error);
       }
-      instrument.play(note, audioContext.currentTime, { gain: velocity });
-    }
-    // Update notation
-    addNoteToNotation(note);
-  };
-
-  // Update the notation with the new note
-  const addNoteToNotation = note => {
-    const noteMapping = {
-      C4: 'c/4',
-      D4: 'd/4',
-      E4: 'e/4',
-      F4: 'f/4',
-      G4: 'g/4',
-      A4: 'a/4',
-      B4: 'b/4',
-      C5: 'c/5',
     };
-    setNotes(prevNotes => [...prevNotes, noteMapping[note]]);
-  };
 
-  // Handle instrument selection change
-  const handleInstrumentChange = event => {
-    setInstrumentName(event.target.value);
-  };
+    if (notes.length > 0) {
+      saveNotes();
+    }
+  }, [notes, projectId]);
+
+  /**
+   * Clean up on component unmount
+   */
+  useEffect(() => {
+    return () => {
+      if (instrument) {
+        instrument.dispose();
+      }
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, [instrument]);
 
   return (
     <div>
-      <Typography variant="h4">Music Editor</Typography>
+      <Typography variant="h4" gutterBottom>
+        Music Editor
+      </Typography>
+
+      {/* View Mode Toggle */}
+      <ButtonGroup variant="contained" style={{ marginTop: '20px' }}>
+        <Button
+          onClick={() => setViewMode('staff')}
+          disabled={viewMode === 'staff'}
+        >
+          Staff Notation
+        </Button>
+        <Button
+          onClick={() => setViewMode('pianoRoll')}
+          disabled={viewMode === 'pianoRoll'}
+        >
+          Piano Roll
+        </Button>
+      </ButtonGroup>
 
       {/* Instrument Selector */}
-      <div>
-        <select value={instrumentName} onChange={handleInstrumentChange}>
-          <option value="acoustic_grand_piano">Piano</option>
+      <div style={{ margin: '20px 0' }}>
+        <label htmlFor="instrument-select">Select Instrument: </label>
+        <select
+          id="instrument-select"
+          value={instrumentName}
+          onChange={handleInstrumentChange}
+        >
+          <option value="piano">Piano</option>
           <option value="violin">Violin</option>
           <option value="trumpet">Trumpet</option>
-          <option value="electric_guitar_jazz">Electric Guitar</option>
+          <option value="guitar">Guitar</option>
           {/* Add more options as needed */}
         </select>
       </div>
 
-      <MusicNotation notes={notes} />
-
-      {instrument ? (
-        <VirtualKeyboard
-          instrument={instrument}
-          audioContext={audioContext}
-          onPlayNote={playNote}
+      {/* Main Content */}
+      {viewMode === 'staff' ? (
+        <MusicNotation notes={notes} />
+      ) : (
+        <PianoRoll
+          notes={notes}
+          onAddNote={(note) => setNotes((prevNotes) => [...prevNotes, note])}
         />
+      )}
+
+      {/* Virtual Keyboard */}
+      {instrument ? (
+        <VirtualKeyboard onPlayNote={playNote} />
       ) : (
         <div>Loading instrument...</div>
       )}
+
+      {/* Save Button */}
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={async () => {
+          try {
+            await api.post(`/api/collaband/project-${projectId}/notes/`, {
+              notes,
+            });
+            alert('Notes saved successfully.');
+          } catch (error) {
+            console.error('Failed to save notes:', error);
+            alert('Failed to save notes.');
+          }
+        }}
+        style={{ marginTop: '20px' }}
+      >
+        Save Notes
+      </Button>
     </div>
   );
 }

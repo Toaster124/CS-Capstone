@@ -3,18 +3,18 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/', // Ensure this matches your back-end URL
+  baseURL: 'http://127.0.0.1:8000/', // Update if necessary
 });
 
 api.interceptors.request.use(
-  config => {
+  (config) => {
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Token ${token}`;
     }
     return config;
   },
-  error => Promise.reject(error),
+  (error) => Promise.reject(error)
 );
 
 export default api;

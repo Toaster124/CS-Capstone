@@ -1,36 +1,70 @@
 // src/components/VirtualKeyboard.js
 
-import React from 'react';
+import React, { useState } from 'react';
+import PropTypes from 'prop-types';
+import './VirtualKeyboard.css';
 
-function VirtualKeyboard({ instrument, audioContext, onPlayNote }) {
-  const handleNoteClick = note => {
-    if (instrument) {
-      // Check if the AudioContext is suspended and resume it
-      if (audioContext.state === 'suspended') {
-        audioContext.resume();
-      }
-      instrument.play(note);
-      if (onPlayNote) {
-        onPlayNote(note, 0.8);
-      }
-    }
+const keys = [
+  // White keys
+  { note: 'C4', type: 'white' },
+  { note: 'D4', type: 'white' },
+  { note: 'E4', type: 'white' },
+  { note: 'F4', type: 'white' },
+  { note: 'G4', type: 'white' },
+  { note: 'A4', type: 'white' },
+  { note: 'B4', type: 'white' },
+  { note: 'C5', type: 'white' },
+  // Black keys
+  { note: 'C#4', type: 'black', position: 1 },
+  { note: 'D#4', type: 'black', position: 2 },
+  { note: 'F#4', type: 'black', position: 4 },
+  { note: 'G#4', type: 'black', position: 5 },
+  { note: 'A#4', type: 'black', position: 6 },
+];
+
+function VirtualKeyboard({ onPlayNote }) {
+  const [activeKeys, setActiveKeys] = useState({});
+
+  const handleMouseDown = (note) => {
+    onPlayNote(note, 127); // Max velocity
+    setActiveKeys((prev) => ({ ...prev, [note]: true }));
   };
 
+  const handleMouseUp = (note) => {
+    setActiveKeys((prev) => ({ ...prev, [note]: false }));
+  };
+
+  const whiteKeys = keys.filter((key) => key.type === 'white');
+  const blackKeys = keys.filter((key) => key.type === 'black');
+
   return (
-    <div>
-      {/* Virtual Keyboard Buttons */}
-      <div>
-        <button onClick={() => handleNoteClick('C4')}>C</button>
-        <button onClick={() => handleNoteClick('D4')}>D</button>
-        <button onClick={() => handleNoteClick('E4')}>E</button>
-        <button onClick={() => handleNoteClick('F4')}>F</button>
-        <button onClick={() => handleNoteClick('G4')}>G</button>
-        <button onClick={() => handleNoteClick('A4')}>A</button>
-        <button onClick={() => handleNoteClick('B4')}>B</button>
-        <button onClick={() => handleNoteClick('C5')}>C5</button>
-      </div>
+    <div className="keyboard">
+      {whiteKeys.map((key, index) => (
+        <div
+          key={key.note}
+          className={`key white ${activeKeys[key.note] ? 'active' : ''}`}
+          onMouseDown={() => handleMouseDown(key.note)}
+          onMouseUp={() => handleMouseUp(key.note)}
+          onMouseLeave={() => handleMouseUp(key.note)}
+          style={{ left: `${index * 40}px` }}
+        />
+      ))}
+      {blackKeys.map((key) => (
+        <div
+          key={key.note}
+          className={`key black ${activeKeys[key.note] ? 'active' : ''}`}
+          onMouseDown={() => handleMouseDown(key.note)}
+          onMouseUp={() => handleMouseUp(key.note)}
+          onMouseLeave={() => handleMouseUp(key.note)}
+          style={{ left: `${key.position * 40}px` }}
+        />
+      ))}
     </div>
   );
 }
+
+VirtualKeyboard.propTypes = {
+  onPlayNote: PropTypes.func.isRequired,
+};
 
 export default VirtualKeyboard;
