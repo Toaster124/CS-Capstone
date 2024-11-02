@@ -64,7 +64,7 @@ async def handle_message(sid, data):
     #run the function to perform the back-end work
     project = await sync_to_async(processChanges, thread_sensitive=True)(data) 
     
-    currentRoom = sio.rooms(sid)
+    currentRoom = sio.rooms(sid)[0]
     if currentRoom != project.id:
         print(f"Leaving room: {currentRoom} and joining room: {project.id}")
         await sio.leave_room(sid, currentRoom) 

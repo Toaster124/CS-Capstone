@@ -27,6 +27,7 @@ function MusicEditor() {
   const [instrument, setInstrument] = useState(null);
   const [instrumentName, setInstrumentName] = useState('piano');
   const [viewMode, setViewMode] = useState('staff'); // 'staff' or 'pianoRoll'
+  const [socket, setSocket] = useState(null);
 
   /**
    * Memoize instrumentOptions to prevent unnecessary re-creations on each render.
@@ -99,7 +100,7 @@ const instrumentOptions = useMemo(() => ({
         );
       }
       // Update notation
-      setNotes((prevNotes) => [...prevNotes, note]);
+      //setNotes((prevNotes) => [...prevNotes, note]);
     },
     [instrument]
   );
@@ -111,11 +112,18 @@ const instrumentOptions = useMemo(() => ({
     (note, velocity) => {
       // Send note to server
       const message = {
-        type: 'notePlayed',
-        data: { note, velocity },
+        senderID: 1,
+        projectID: projectId,
+        data: {
+          type: 'notePlayed',
+          note: note, 
+          velocity: velocity 
+        }
       };
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify(message));
+      
+      if (socket && socket.connected) {
+        socket.emit("message", message);
+
       }
 
       // Play note locally
