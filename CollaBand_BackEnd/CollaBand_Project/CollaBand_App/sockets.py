@@ -5,7 +5,6 @@ import json
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
 from .models import Project, ChatMessage, Chat, ChatMsg
-from .serializers import MessageSerializer
 from asgiref.sync import sync_to_async
 
 mgr = socketio.AsyncRedisManager(settings.REDIS_URL)
@@ -32,9 +31,11 @@ async def connect(sid, env):
 
 def store_and_return_message(data):
     
-    
-    data = json.loads(data) #turns json => dict
+    if data:
+        data = json.loads(data) #turns json => dict
     #data = json.dumps(data) #turns dict => json
+    else:
+        data = {}
 
     #(using postman it's being processed as a dict)
 

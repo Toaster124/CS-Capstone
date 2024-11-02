@@ -15,7 +15,12 @@ from rest_framework import status, generics
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from .models import Project, UserProjectRole, Chat, ChatMsg
+from .models import (
+    Project, 
+    UserProjectRole, 
+    Chat, 
+    ChatMsg
+)
 from .serializers import (
     UserSerializer,
     ProjectSerializer,
@@ -24,8 +29,9 @@ from .serializers import (
     ChatMsgSerializer
 )
 import json
+from django.db import IntegrityError
 
-# Registration View
+
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = [AllowAny]
@@ -111,14 +117,8 @@ def dashboard(request):
         except Exception as e:
             return Response({'error': f'Project could not be created: {str(e)}'}, status=400)
 
-    elif request.method == 'PUT':
-        return Response({'error': 'PUT method not implemented'}, status=405)
-
-    elif request.method == 'DELETE':
-        return Response({'error': 'DELETE method not implemented'}, status=405)
-
     else:
-        return HttpResponseNotAllowed(['GET', 'POST', 'PUT', 'DELETE'])
+        return HttpResponseNotAllowed(['GET', 'POST'])
 
 @api_view(['GET', 'POST'])
 @authentication_classes([TokenAuthentication])
@@ -145,11 +145,15 @@ def project_notes(request, projectID):
         return Response({'message': 'Notes saved successfully.'}, status=200)
 
 # Project Details View
-@api_view(['GET', 'DELETE'])
+@api_view(['GET', 'DELETE', 'PUT'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def projectDAW(request, projectID):
     user = request.user
+    if request.body:
+        data = json.loads(request.body.decode('utf-8'))
+    else:
+        data = {}
 
     if request.method == 'GET':
         try:
@@ -177,7 +181,54 @@ def projectDAW(request, projectID):
             return Response({'error': 'Project not found.'}, status=404)
         except Exception as e:
             return Response({'error': str(e)}, status=400)
+        
+    elif request.method == 'PUT':   #modify a project field
+        try:
+            #projectID = data.get('projectID')
+            projectToChange = Project.objects.get(id=projectID, userID=user)
+            
+            if data.project:
+                #change project info
+                newProjectName = data.get('project_name', projectToChange.projectName)       #second value is the default if no parameter is sent in the JSON
+                newProjectDescription = data.get('description', projectToChange.description) 
 
+                #set project changes
+                projectToChange.projectName = newProjectName
+                projectToChange.description = newProjectDescription
+
+                # save project changes
+                projectToChange.save()
+                return Response({'message':'Project modified successfully'}, status=200)
+            elif data.user_project_role:
+                #add a user
+                newUserRole = data.user_project_role.get('role')
+                newUsernameToAdd = data.user_project_role.get('username')
+                
+                if newUserRole and newUsernameToAdd:
+                    if newUserRole in ('collaborator', 'viewer'):
+                        #turn username into a User
+                        newUserToAdd = User.objects.get(username=newUsernameToAdd)
+                        
+                        #create new userProjectRole object
+                        userRoleToCreate = UserProjectRole()
+                        
+                        #assign fields
+                        userRoleToCreate.role = newUserRole
+                        userRoleToCreate.userID = newUserToAdd
+                        userRoleToCreate.projectID = projectToChange
+                        #save new role relation
+                        userRoleToCreate.save()
+                        return Response({'message':'User added successfully.'}, status=200)
+        
+        except Project.DoesNotExist:
+            return Response({'error': 'You are not the owner of this project and cannot modify it.'}, status=403)
+        except UserProjectRole.DoesNotExist:
+            return Response({'error': 'You are not associated with this project.'}, status=403)
+        
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
+    
+    
     elif request.method == 'DELETE':
         try:
             user_project_role = UserProjectRole.objects.get(userID=user, projectID=projectID)
@@ -188,15 +239,17 @@ def projectDAW(request, projectID):
             project_to_delete.delete()
             return Response({'message': 'Project deleted successfully'}, status=200)
 
-        except UserProjectRole.DoesNotExist:
-            return Response({'error': 'You are not associated with this project.'}, status=403)
         except Project.DoesNotExist:
-            return Response({'error': 'Project not found.'}, status=404)
+            return Response({'error': 'You are not the owner of this project and cannot modify it.'}, status=403)
+        except User.DoesNotExist:
+            return Response({'error': 'The specified user does not exist.'}, status=404)
+        except IntegrityError:
+            return Response({'error': 'An error occurred while trying to add the user to the project.'}, status=400)
         except Exception as e:
             return Response({'error': str(e)}, status=400)
 
     else:
-        return HttpResponseNotAllowed(['GET', 'DELETE'])
+        return HttpResponseNotAllowed(['GET', 'PUT', 'DELETE'])
 
 @api_view(['GET', 'POST'])
 @authentication_classes([TokenAuthentication])
