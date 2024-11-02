@@ -61,7 +61,7 @@ const instrumentOptions = useMemo(() => ({
       release: 1,
     },
   }).toDestination(),
-  guitar: new Tone.Sampler({
+ /* guitar: new Tone.Sampler({
     urls: {
       E2: 'E2.mp3',
       A2: 'A2.mp3',
@@ -70,8 +70,8 @@ const instrumentOptions = useMemo(() => ({
       B3: 'B3.mp3',
       E4: 'E4.mp3',
     },
-    baseUrl: 'https://your-sample-url/guitar/', // Replace with your actual sample URL
-  }).toDestination(),
+    baseUrl: 'https://tonejs.github.io/examples/audio/casio/', // Replace with your actual sample URL
+  }).toDestination(),*/
 }), []);
 
 
@@ -150,6 +150,8 @@ const instrumentOptions = useMemo(() => ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instrumentName, instrumentOptions]);
+
+
 
   /**
    * Initialize WebSocket connection
@@ -265,7 +267,7 @@ const instrumentOptions = useMemo(() => ({
           <option value="piano">Piano</option>
           <option value="violin">Violin</option>
           <option value="trumpet">Trumpet</option>
-          <option value="guitar">Guitar</option>
+          {/* <option value="guitar">Guitar</option> */}
           {/* Add more options as needed */}
         </select>
       </div>

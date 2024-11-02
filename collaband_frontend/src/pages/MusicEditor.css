@@ -1,0 +1,15 @@
+/* src/pages/MusicEditor.css */
+
+.music-editor {
+    padding: 20px;
+  }
+  
+  .virtual-keyboard-container {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    z-index: 1000; /* Ensure it stays on top */
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ccc;
+  }
+  

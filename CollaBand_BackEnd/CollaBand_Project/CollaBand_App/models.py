@@ -23,8 +23,8 @@ class UserProjectRole(models.Model):
     ]
     
     role = models.CharField(max_length=20, choices=projectRoles)
-    userID = models.ForeignKey(User, on_delete=models.PROTECT)
-    projectID = models.ForeignKey(Project, on_delete=models.PROTECT)
+    userID = models.ForeignKey(User, on_delete=models.CASCADE)
+    projectID = models.ForeignKey(Project, on_delete=models.CASCADE)
     
     def __str__(self):
         return f"{self.userID} - {self.role} of project: {self.projectID}"

@@ -25,6 +25,7 @@ urlpatterns = [
     path('api/collaband/', include('CollaBand_App.urls')),
     path('api-token-auth/', drf_views.obtain_auth_token, name='api_token_auth'),  # Token authentication
     path('auth/register/', views.RegisterView.as_view(), name='register'),  # Registration endpoint
+    path('auth/user/', views.UserProfileView.as_view(), name='user_profile'),  # User profile endpoint
     path('auth/login/', views.CustomAuthToken.as_view(), name='login'),  # Login endpoint
 
 ]
