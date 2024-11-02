@@ -2,6 +2,7 @@
 
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseNotAllowed, JsonResponse
+from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import (
     api_view,
@@ -66,7 +67,17 @@ class CustomAuthToken(ObtainAuthToken):
 
         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
-# Dashboard View
+# User Profile View
+ 
+class UserProfileView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data) 
+
+#  Dashboard View
 @api_view(['GET', 'POST', 'PUT', 'DELETE'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
