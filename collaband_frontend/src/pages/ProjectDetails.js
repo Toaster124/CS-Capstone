@@ -15,12 +15,16 @@ import {
 } from '@mui/material';
 import api from '../utils/api';
 
+//socket library
+import io from 'socket.io-client';
+
 function ProjectDetails() {
   const { projectId } = useParams();
   const [userRole, setUserRole] = useState('');
   const [project, setProject] = useState(null);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const navigate = useNavigate();
+ 
 
   useEffect(() => {
     const fetchProject = async () => {

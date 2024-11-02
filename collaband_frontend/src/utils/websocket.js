@@ -7,6 +7,10 @@ export function initWebSocket(projectId) {
   );
 
   ws.onopen = () => {
+    ws.emit("join_room", {
+      "senderID":1,
+      "projectID": projectId
+    })
     console.log('WebSocket connection established');
   };
 

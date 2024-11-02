@@ -8,13 +8,18 @@ import React, {
   useMemo,
 } from 'react';
 import { useParams } from 'react-router-dom';
+<<<<<<< Updated upstream
 import { initWebSocket } from '../utils/websocket';
 import { Typography, ButtonGroup, Button } from '@mui/material';
 import VirtualKeyboard from '../components/VirtualKeyboard';
 import MusicNotation from '../components/MusicNotation';
+import Soundfont from 'soundfont-player';
+//import { initWebSocket } from '../utils/websocket';
 import PianoRoll from '../components/PianoRoll';
 import * as Tone from 'tone';
 import api from '../utils/api';
+import { io } from 'socket.io-client';
+
 
 function MusicEditor() {
   const [notes, setNotes] = useState([]);
@@ -151,9 +156,74 @@ const instrumentOptions = useMemo(() => ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instrumentName, instrumentOptions]);
 
-  /**
-   * Initialize WebSocket connection
-   */
+<<<<<<< Updated upstream
+  // Initialize WebSocket
+=======
+        // Create and set the new instrument
+        const selectedInstrument = instrumentOptions[instrumentName];
+        setInstrument(selectedInstrument);
+      } catch (error) {
+        console.error(`Failed to load instrument ${instrumentName}:`, error);
+      }
+    };
+
+    loadInstrument();
+
+    // Clean up function
+    return () => {
+      if (instrument) {
+        instrument.dispose();
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [instrumentName, instrumentOptions]);
+
+  //Establish a connection to the websocket
+  useEffect(() => {
+    const newSocket = io("http://192.168.1.67:8000", {
+        transports: ["websocket"],
+        withCredentials: true,
+    });
+    setSocket(newSocket);
+
+    newSocket.on("connect", () => {
+        console.log("Connected to WebSocket server");
+        newSocket.emit("join_room", {
+          senderID: 1,
+          projectID: projectId,
+        });
+    });
+
+    newSocket.on("new_join", (roomData) => {
+        console.log("Received new message:", roomData);
+        // Handle incoming data here
+    });
+
+    newSocket.on("new_message", (musicData) => {
+      console.log("Received new message:", musicData);
+      //setNotes(musicData.data)
+      //setNotes((prevNotes) => [musicData['data']['notes']]);
+      
+      const socketNote = String(musicData.data.note);
+      const socketVelocity = musicData.data.velocity; 
+  
+  // Optionally, you can also use senderID or projectID if needed
+  
+  // Update the notes state with the new note
+      setNotes((prevNotes) => [...prevNotes, socketNote]);
+
+  // Optionally, play the note locally
+      playNoteLocally(socketNote, socketVelocity);
+    });
+
+    return () => {
+        newSocket.disconnect();
+        console.log("Disconnected from WebSocket server");
+    };
+  }, []);
+
+  /*
+>>>>>>> Stashed changes
   useEffect(() => {
     const ws = initWebSocket(projectId);
     wsRef.current = ws;
@@ -173,6 +243,7 @@ const instrumentOptions = useMemo(() => ({
       ws.close();
     };
   }, [projectId, playNoteLocally]);
+  */
 
   /**
    * Handle instrument selection change
