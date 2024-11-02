@@ -4,11 +4,15 @@ import { useParams, useNavigate, Link as RouterLink } from 'react-router-dom';
 import { Typography, Container, Button, Box } from '@mui/material';
 import api from '../utils/api';
 
+//socket library
+import io from 'socket.io-client';
+
 function ProjectDetails() {
   const { projectId } = useParams();
   const [userRole, setUserRole] = useState('');
   const [project, setProject] = useState(null);
   const navigate = useNavigate();
+ 
 
   useEffect(() => {
     const fetchProject = async () => {

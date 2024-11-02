@@ -3,15 +3,15 @@ from django.conf import settings
 import json
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.models import User
-from .models import Project, ChatMessage, Chat, ChatMsg
+from CollaBand_App.models import Project, ChatMessage, Chat, ChatMsg
 from asgiref.sync import sync_to_async
+
 
 mgr = socketio.AsyncRedisManager(settings.REDIS_URL)
 sio = socketio.AsyncServer(
     async_mode="asgi", 
     client_manager=mgr, 
     cors_allowed_origins="*", 
-    ping_timeout=6000, 
     ping_interval=2500
 )
 
@@ -44,13 +44,8 @@ async def connect(sid, env, auth):
         raise ConnectionRefusedError("No auth")
 '''    
 
-def store_and_return_message(data):
+def processChanges(data):
     
-    if data:
-        data = json.loads(data) #turns json => dict
-    #data = json.dumps(data) #turns dict => json
-    else:
-        data = {}
 
     #(using postman it's being processed as a dict)
 
@@ -80,10 +75,27 @@ def store_and_return_message(data):
 @sio.on("message")
 async def print_message(sid, data):
     print("Socket ID", sid)
+    print("Data", data)
+    print("Type", type(data))
     
+<<<<<<< Updated upstream
 
     #run the function to perform the back-end work
     project = await sync_to_async(store_and_return_message, thread_sensitive=True)(data) 
+=======
+    # Deserialize data if necessary
+    '''
+    if isinstance(data, str):
+        jsonData = json.loads(data)
+    else:
+        
+    '''
+    jsonData = data
+    #jsonData = json.loads(data)
+
+    # Run the function to perform the back-end work
+    project = await sync_to_async(processChanges, thread_sensitive=True)(jsonData) 
+>>>>>>> Stashed changes
     
     currentRoom = sio.rooms(sid)[0]
     if currentRoom != project.id:
@@ -94,6 +106,7 @@ async def print_message(sid, data):
     #if sender info did not match
     if project == None:
         print("Attempted spoofing detected. No changes made")
+<<<<<<< Updated upstream
     else:
         #notify other clients in a project of a change in project data
         print("Project.data: ", project.data)
@@ -101,6 +114,50 @@ async def print_message(sid, data):
         await sio.emit("new_message", data, room=str(project.id))
         #print("Room: ", sio.rooms(sid))
         #await sio.(project.id).emit("new_message", data)
+=======
+        return
+
+    project_id_str = str(project.id)
+    '''
+    rooms = await sio.rooms(sid)
+
+    # Ensure the user is in the correct room
+    if project_id_str not in rooms:
+        print(f"Adding sid to room: {project_id_str}")
+        await sio.enter_room(sid, project_id_str)
+    '''
+    # Notify other clients in the project room
+    print("Project.data: ", project.data)
+    await sio.emit("new_message", jsonData, room=project_id_str)
+
+
+# On reception of a 'join_room' event
+@sio.on("join_room")
+async def join_room(sid, data):
+    print("Socket ID", sid)
+    print("sid type", type(sid))
+    
+    # Convert JSON string to python dict if necessary
+    if isinstance(data, str):
+        jsonData = json.loads(data)
+    else:
+        jsonData = data
+    
+    roomToJoin = str(jsonData["projectID"])
+    
+    # Leave all rooms except the default room
+    rooms = sio.rooms(sid)
+    for room in rooms:
+        if room != sid:
+            await sio.leave_room(sid, room)
+    
+    # Join the new room
+    await sio.enter_room(sid, roomToJoin)
+    
+    print(f"Joined room: {roomToJoin}")
+    await sio.emit("new_join", jsonData, room=roomToJoin)
+
+>>>>>>> Stashed changes
 
 
 @sio.on("disconnect")
