@@ -8,7 +8,6 @@ import React, {
   useMemo,
 } from 'react';
 import { useParams } from 'react-router-dom';
-<<<<<<< Updated upstream
 import { initWebSocket } from '../utils/websocket';
 import { Typography, ButtonGroup, Button } from '@mui/material';
 import VirtualKeyboard from '../components/VirtualKeyboard';
@@ -155,29 +154,7 @@ const instrumentOptions = useMemo(() => ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [instrumentName, instrumentOptions]);
-
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-  // Initialize WebSocket
-=======
-        // Create and set the new instrument
-        const selectedInstrument = instrumentOptions[instrumentName];
-        setInstrument(selectedInstrument);
-      } catch (error) {
-        console.error(`Failed to load instrument ${instrumentName}:`, error);
-      }
-    };
-
-    loadInstrument();
-
-    // Clean up function
-    return () => {
-      if (instrument) {
-        instrument.dispose();
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [instrumentName, instrumentOptions]);
+      
 
   //Establish a connection to the websocket
   useEffect(() => {
@@ -225,13 +202,6 @@ const instrumentOptions = useMemo(() => ({
 
   /*
 >>>>>>> Stashed changes
-=======
-
-
-  /**
-   * Initialize WebSocket connection
-   */
->>>>>>> 43d90b4bee462a3fa0cdcf2aa648f5bd66f3c5b0
   useEffect(() => {
     const ws = initWebSocket(projectId);
     wsRef.current = ws;
