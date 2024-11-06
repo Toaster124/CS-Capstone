@@ -26,7 +26,7 @@ function Header() {
             <Toolbar>
                 <Box
                     component="img"
-                    src="/Picture1.png" // Placeholder for your logo image
+                    src="/Picture1.png"
                     alt="CollaBand Logo"
                     sx={{ height: 40, width: 40, mr: 1 }}
                 />
