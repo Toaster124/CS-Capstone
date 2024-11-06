@@ -193,7 +193,7 @@ const instrumentOptions = useMemo(() => ({
       const socketNote = String(musicData.data.note);
       const socketVelocity = musicData.data.velocity; 
   
-  // Optionally, you can also use senderID or projectID if needed
+  // We can also use senderID or projectID if needed
   
   // Update the notes state with the new note
       setNotes((prevNotes) => [...prevNotes, socketNote]);
