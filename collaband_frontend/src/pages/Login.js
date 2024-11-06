@@ -29,7 +29,7 @@ function Login() {
             <Box mt={5} display="flex" alignItems="center">
                 <Box
                     component="img"
-                    src="/Picture1.png" // Update with the correct path to your image
+                    src="/Picture1.png"
                     alt="CollaBand Logo"
                     sx={{ height: 60, width: 60, mr: 1 }} // Set size to 60px
                 />
