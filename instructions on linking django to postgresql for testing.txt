@@ -25,6 +25,7 @@ pip install "uvicorn[standard]"
 pip install gunicorn
 pip install python-socketio
 python -m pip install django-cors-headers
+pip install redis
 
 then navigate to CollaBand_Project using the cd command:
 cd CollaBand_BackEnd
