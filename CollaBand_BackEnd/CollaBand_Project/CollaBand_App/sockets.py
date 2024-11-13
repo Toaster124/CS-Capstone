@@ -8,6 +8,7 @@ from CollaBand_App.models import Project, ChatMessage, Chat, ChatMsg
 from asgiref.sync import sync_to_async
 
 
+
 mgr = socketio.AsyncRedisManager(settings.REDIS_URL)
 sio = socketio.AsyncServer(
     async_mode="asgi", 
@@ -30,10 +31,6 @@ async def connect(sid, env):
 
 
 def processChanges(data):
-    
-
-    #(using postman it's being processed as a dict)
-
     print(data)
 
     #parse data
@@ -41,9 +38,7 @@ def processChanges(data):
     projectID = data["projectID"]
     projectData = data["data"]
     sender = get_object_or_404(User, pk=senderID)
-    #if the logged-in sender does not match the message's sender
     
-    # else
     # get the project 
     project = get_object_or_404(Project, pk=projectID)
 
@@ -110,6 +105,39 @@ async def join_room(sid, data):
     print(f"Joined room: {roomToJoin}")
     await sio.emit("new_join", jsonData, room=roomToJoin)
 
+
+
+def backspaceFunct(data):
+    try:
+        projectID = data["projectID"]
+        
+        #get the project to edit
+        projectToBackspace = Project.objects.get(id=projectID)
+        
+        #pull the notes from the project
+        notes = projectToBackspace.data.get("notes",[])
+        #print("\nNotes before deletion: ", notes)
+        
+        #slice the notes to exclude the last note
+        notes = notes[:-1]
+        projectToBackspace.data["notes"] = notes
+        
+        #print("\nNotes after deletion", projectToBackspace.data["notes"])
+        projectToBackspace.save()
+        print("Backspace")
+        return projectID
+    except: 
+        return False
+    
+    
+
+@sio.on("backspace")
+async def handle_message(sid, data):
+    projectId = await sync_to_async(backspaceFunct, thread_sensitive=True)(data) 
+    if projectId:
+        await sio.emit("new_backspace", data, room=str(projectId))
+    
+    
 
 
 @sio.on("disconnect")

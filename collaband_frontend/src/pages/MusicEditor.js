@@ -166,7 +166,7 @@ const instrumentOptions = useMemo(() => ({
 
   //Establish a connection to the websocket
   useEffect(() => {
-    const newSocket = io("http://192.168.1.67:8000", {
+    const newSocket = io("http://127.0.0.1:8000", {
         transports: ["websocket"],
         withCredentials: true,
     });
@@ -182,7 +182,6 @@ const instrumentOptions = useMemo(() => ({
 
     newSocket.on("new_join", (roomData) => {
         console.log("Received new message:", roomData);
-        // Handle incoming data here
     });
 
     newSocket.on("new_message", (musicData) => {
@@ -202,6 +201,11 @@ const instrumentOptions = useMemo(() => ({
       playNoteLocally(socketNote, socketVelocity);
     });
 
+    newSocket.on("new_backspace", (roomData) => {
+      console.log("Received new backspace:", roomData);
+      setNotes((prevNotes) => prevNotes.slice(0, -1));
+  });
+
     return () => {
         newSocket.disconnect();
         console.log("Disconnected from WebSocket server");
@@ -209,29 +213,6 @@ const instrumentOptions = useMemo(() => ({
   }, []);
 
   /*
->>>>>>> Stashed changes
-  useEffect(() => {
-    const ws = initWebSocket(projectId);
-    wsRef.current = ws;
-
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'notePlayed') {
-        playNoteLocally(message.data.note, message.data.velocity);
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
-
-    return () => {
-      ws.close();
-    };
-  }, [projectId, playNoteLocally]);
-  */
-
-  /**
    * Handle instrument selection change
    */
   const handleInstrumentChange = useCallback((event) => {
@@ -337,12 +318,33 @@ const instrumentOptions = useMemo(() => ({
         />
       )}
 
-      {/* Virtual Keyboard */}
-      {instrument ? (
-        <VirtualKeyboard onPlayNote={playNote} />
-      ) : (
-        <div>Loading instrument...</div>
-      )}
+      {/* Virtual Keyboard and Backspace Button */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '20px' }}>
+        <div style={{ display: 'inline-flex', gap: '20px' }}>
+          {instrument ? (
+            <VirtualKeyboard onPlayNote={playNote} />
+          ) : (
+            <div>Loading instrument...</div>
+          )}
+
+          {/* Backspace Button */}
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={() => {
+              if (socket && socket.connected) {
+                socket.emit("backspace", { projectID: projectId });
+              }
+              //setNotes((prevNotes) => prevNotes.slice(0, -1));
+            }}
+            //style={{ padding: '20px 12px', minWidth: 'fit-content' }}
+            style={{ padding: '20px 12px', height: '35px', minWidth: 'fit-content', fontSize: '0.8rem', marginTop: '20px'}}
+          >
+            Backspace
+          </Button>
+        </div>
+      </div>
+      
 
       {/* Save Button */}
       <Button
@@ -363,6 +365,7 @@ const instrumentOptions = useMemo(() => ({
       >
         Save Notes
       </Button>
+
     </div>
   );
 }
