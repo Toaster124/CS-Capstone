@@ -19,7 +19,6 @@ import * as Tone from 'tone';
 import api from '../utils/api';
 import { io } from 'socket.io-client';
 
-
 function MusicEditor() {
   const [notes, setNotes] = useState([]);
   const { projectId } = useParams();
@@ -66,17 +65,6 @@ const instrumentOptions = useMemo(() => ({
       release: 1,
     },
   }).toDestination(),
- /* guitar: new Tone.Sampler({
-    urls: {
-      E2: 'E2.mp3',
-      A2: 'A2.mp3',
-      D3: 'D3.mp3',
-      G3: 'G3.mp3',
-      B3: 'B3.mp3',
-      E4: 'E4.mp3',
-    },
-    baseUrl: 'https://tonejs.github.io/examples/audio/casio/', // Replace with your actual sample URL
-  }).toDestination(),*/
 }), []);
 
 
@@ -164,6 +152,7 @@ const instrumentOptions = useMemo(() => ({
   }, [instrumentName, instrumentOptions]);
       
 
+
   //Establish a connection to the websocket
   useEffect(() => {
     const newSocket = io("http://127.0.0.1:8000", {
@@ -186,18 +175,9 @@ const instrumentOptions = useMemo(() => ({
 
     newSocket.on("new_message", (musicData) => {
       console.log("Received new message:", musicData);
-      //setNotes(musicData.data)
-      //setNotes((prevNotes) => [musicData['data']['notes']]);
-      
       const socketNote = String(musicData.data.note);
       const socketVelocity = musicData.data.velocity; 
-  
-  // We can also use senderID or projectID if needed
-  
-  // Update the notes state with the new note
       setNotes((prevNotes) => [...prevNotes, socketNote]);
-
-  // Optionally, play the note locally
       playNoteLocally(socketNote, socketVelocity);
     });
 
@@ -271,101 +251,95 @@ const instrumentOptions = useMemo(() => ({
   }, [instrument]);
 
   return (
-    <div>
-      <Typography variant="h4" gutterBottom>
-        Music Editor
-      </Typography>
+    <div style={{ display: 'flex' }}>
+      <div style={{ flex: 1, paddingRight: '20px' }}>
+        <Typography variant="h4" gutterBottom>
+          Music Editor
+        </Typography>
 
-      {/* View Mode Toggle */}
-      <ButtonGroup variant="contained" style={{ marginTop: '20px' }}>
-        <Button
-          onClick={() => setViewMode('staff')}
-          disabled={viewMode === 'staff'}
-        >
-          Staff Notation
-        </Button>
-        <Button
-          onClick={() => setViewMode('pianoRoll')}
-          disabled={viewMode === 'pianoRoll'}
-        >
-          Piano Roll
-        </Button>
-      </ButtonGroup>
-
-      {/* Instrument Selector */}
-      <div style={{ margin: '20px 0' }}>
-        <label htmlFor="instrument-select">Select Instrument: </label>
-        <select
-          id="instrument-select"
-          value={instrumentName}
-          onChange={handleInstrumentChange}
-        >
-          <option value="piano">Piano</option>
-          <option value="violin">Violin</option>
-          <option value="trumpet">Trumpet</option>
-          {/* <option value="guitar">Guitar</option> */}
-          {/* Add more options as needed */}
-        </select>
-      </div>
-
-      {/* Main Content */}
-      {viewMode === 'staff' ? (
-        <MusicNotation notes={notes} />
-      ) : (
-        <PianoRoll
-          notes={notes}
-          onAddNote={(note) => setNotes((prevNotes) => [...prevNotes, note])}
-        />
-      )}
-
-      {/* Virtual Keyboard and Backspace Button */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '20px' }}>
-        <div style={{ display: 'inline-flex', gap: '20px' }}>
-          {instrument ? (
-            <VirtualKeyboard onPlayNote={playNote} />
-          ) : (
-            <div>Loading instrument...</div>
-          )}
-
-          {/* Backspace Button */}
+        {/* View Mode Toggle */}
+        <ButtonGroup variant="contained" style={{ marginTop: '20px' }}>
           <Button
-            variant="contained"
-            color="secondary"
-            onClick={() => {
-              if (socket && socket.connected) {
-                socket.emit("backspace", { projectID: projectId });
-              }
-              //setNotes((prevNotes) => prevNotes.slice(0, -1));
-            }}
-            //style={{ padding: '20px 12px', minWidth: 'fit-content' }}
-            style={{ padding: '20px 12px', height: '35px', minWidth: 'fit-content', fontSize: '0.8rem', marginTop: '20px'}}
+            onClick={() => setViewMode('staff')}
+            disabled={viewMode === 'staff'}
           >
-            Backspace
+            Staff Notation
           </Button>
+          <Button
+            onClick={() => setViewMode('pianoRoll')}
+            disabled={viewMode === 'pianoRoll'}
+          >
+            Piano Roll
+          </Button>
+        </ButtonGroup>
+
+        {/* Instrument Selector */}
+        <div style={{ margin: '20px 0' }}>
+          <label htmlFor="instrument-select">Select Instrument: </label>
+          <select
+            id="instrument-select"
+            value={instrumentName}
+            onChange={handleInstrumentChange}
+          >
+            <option value="piano">Piano</option>
+            <option value="violin">Violin</option>
+            <option value="trumpet">Trumpet</option>
+          </select>
+        </div>
+
+        {/* Main Content */}
+        {viewMode === 'staff' ? (
+          <MusicNotation notes={notes} />
+        ) : (
+          <PianoRoll
+            notes={notes}
+            onAddNote={(note) => setNotes((prevNotes) => [...prevNotes, note])}
+          />
+        )}
+
+        {/* Virtual Keyboard and Backspace Button */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '20px' }}>
+          <div style={{ display: 'inline-flex', gap: '20px' }}>
+            {instrument ? (
+              <VirtualKeyboard onPlayNote={playNote} />
+            ) : (
+              <div>Loading instrument...</div>
+            )}
+
+            {/* Backspace Button */}
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={() => {
+                if (socket && socket.connected) {
+                  socket.emit("backspace", { projectID: projectId });
+                }
+              }}
+              style={{ padding: '0px 20px', height: '70px' }}
+            >
+              Backspace
+            </Button>
+          </div>
         </div>
       </div>
-      
 
-      {/* Save Button */}
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={async () => {
-          try {
-            await api.post(`/api/collaband/project-${projectId}/notes/`, {
-              notes,
-            });
-            alert('Notes saved successfully.');
-          } catch (error) {
-            console.error('Failed to save notes:', error);
-            alert('Failed to save notes.');
-          }
-        }}
-        style={{ marginTop: '20px' }}
-      >
-        Save Notes
-      </Button>
-
+      {/* Note Log Sidebar */}
+  <div style={{ width: '250px', padding: '10px', borderLeft: '1px solid #ddd', height: 'calc(100vh - 150px)', overflowY: 'auto' }}>
+    <Typography variant="h6">Note Log</Typography>
+    <ul style={{ listStyleType: 'none', padding: 0 }}>
+      {notes.map((note, index) => (
+        <li
+          key={index}
+          style={{
+            padding: '5px 0',
+            borderBottom: index !== notes.length - 1 ? '1px solid #ccc' : 'none',
+          }}
+        >
+          {note}
+        </li>
+      ))}
+    </ul>
+  </div>
     </div>
   );
 }
