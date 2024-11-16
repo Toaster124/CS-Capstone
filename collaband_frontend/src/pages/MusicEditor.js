@@ -33,6 +33,9 @@ function MusicEditor() {
   const [cursorPosition, setCursorPosition] = useState(0); // Cursor position in notes array
   const [changeLog, setChangeLog] = useState([]); // Persistent change log
 
+  // User info
+  const [user, setUser] = useState({ username: '', email: '' });
+
   // Generate a unique client ID
   const clientId = useMemo(() => uuidv4(), []);
 
@@ -199,9 +202,10 @@ function MusicEditor() {
    */
   const playNote = useCallback(
     (note, velocity) => {
+      console.log("playNote activated")
       // Send note to server
       const message = {
-        senderID: clientId, // Use unique clientId
+        senderID: user.username, // Use unique clientId
         projectID: projectId,
         data: {
           type: 'notePlayed',
@@ -214,26 +218,30 @@ function MusicEditor() {
 
       if (socket && socket.connected) {
         socket.emit('message', message);
+        console.log("message emitted.")
       }
 
       // Play note locally (but don't add to notes array)
       playNoteLocally(note, velocity);
 
       // Add the note to the notes array locally
+      /*
       setNotes((prevNotes) => {
         const newNotes = [...prevNotes];
         newNotes.splice(cursorPosition, 0, {
           pitch: note,
           duration: selectedDuration,
-          userId: clientId,
+          userId: user.username,
         });
         return newNotes;
       });
+      */
 
       // Move cursor to next position
       setCursorPosition((prevPosition) => prevPosition + 1);
 
       // Record the action in the change log
+      /*
       setChangeLog((prevLog) => [
         ...prevLog,
         {
@@ -244,6 +252,7 @@ function MusicEditor() {
           timestamp: Date.now(),
         },
       ]);
+      */
     },
     [
       playNoteLocally,
@@ -297,24 +306,42 @@ function MusicEditor() {
     };
   }, [instrumentName, instrumentOptions]);
 
+  var iteration = 1;
+  //Get user information
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await api.get('/auth/user/');
+        setUser(response.data);
+      } catch (err) {
+        console.error('Failed to fetch user data', err);
+      }
+    };
+    fetchUser();
+  }, []);
+
+
   // Establish a connection to the websocket
   useEffect(() => {
-    const newSocket = io('http://10.161.37.106:8000', {
+    if (iteration > 1) return; //prevents from running if it already exists
+    iteration+=1;
+    
+    const newSocket = io('http://127.0.0.1:8000', {
       transports: ['websocket'],
       withCredentials: true,
     });
     setSocket(newSocket);
 
     newSocket.on('connect', () => {
-      console.log('Connected to WebSocket server');
+      console.log('Connected to WebSocket server. Iteration: ', iteration);
       newSocket.emit('join_room', {
-        senderID: clientId,
+        senderID: user.username,
         projectID: projectId,
       });
     });
 
     newSocket.on('new_join', (roomData) => {
-      console.log('Received new message:', roomData);
+      console.log('Received new join:', roomData);
     });
 
     newSocket.on('new_message', (musicData) => {
@@ -327,7 +354,7 @@ function MusicEditor() {
       const position = musicData.data.cursorPosition || notes.length;
 
       // Get or assign a color for the user
-      getUserColor(senderID);
+      //getUserColor(senderID);
 
       // Record the note
       setNotes((prevNotes) => {
@@ -383,11 +410,15 @@ function MusicEditor() {
       ]);
     });
 
+    /*
     return () => {
       newSocket.disconnect();
       console.log('Disconnected from WebSocket server');
     };
-  }, [projectId, clientId, playNoteLocally, notes.length]);
+    */
+  }, []);
+
+  //projectId, clientId, playNoteLocally, notes.length
 
   /*
    * Handle instrument selection change
@@ -395,6 +426,8 @@ function MusicEditor() {
   const handleInstrumentChange = useCallback((event) => {
     setInstrumentName(event.target.value);
   }, []);
+
+  
 
   /**
    * Load existing notes when the component mounts
@@ -419,7 +452,7 @@ function MusicEditor() {
           } else {
             // New format: object
             // Assign color to user
-            getUserColor(note.userId || 'unknown');
+            //getUserColor(note.userId || 'unknown');
             return note;
           }
         });
@@ -572,30 +605,34 @@ function MusicEditor() {
             const restNote = {
               pitch: 'rest',
               duration: selectedDuration,
-              userId: clientId,
+              userId: user.user,
             };
+            /*
             setNotes((prevNotes) => {
               const newNotes = [...prevNotes];
               newNotes.splice(cursorPosition, 0, restNote);
               return newNotes;
             });
+            */
             setCursorPosition((prevPosition) => prevPosition + 1);
 
             // Record the action in the change log
+            /*
             setChangeLog((prevLog) => [
               ...prevLog,
               {
                 action: 'restAdded',
                 duration: selectedDuration,
-                userId: clientId,
+                userId: user.username,
                 timestamp: Date.now(),
               },
             ]);
+            */
 
             // Send to server
             if (socket && socket.connected) {
               const message = {
-                senderID: clientId,
+                senderID: user.username,
                 projectID: projectId,
                 data: {
                   type: 'restAdded',
@@ -658,14 +695,15 @@ function MusicEditor() {
               variant="contained"
               color="secondary"
               onClick={() => {
-                if (socket && socket.connected) {
+                if (socket && socket.connected && cursorPosition>0) {
                   socket.emit('backspace', {
                     projectID: projectId,
-                    senderID: clientId,
+                    senderID: user.username,
                     cursorPosition: cursorPosition,
                   });
                 }
                 // Remove the note at the cursor position
+                /*
                 setNotes((prevNotes) => {
                   if (cursorPosition > 0) {
                     const newNotes = [...prevNotes];
@@ -674,20 +712,23 @@ function MusicEditor() {
                   }
                   return prevNotes;
                 });
+                */
                 // Move cursor back
                 setCursorPosition((prevPosition) =>
                   Math.max(prevPosition - 1, 0)
                 );
 
                 // Record the action in the change log
+                /*
                 setChangeLog((prevLog) => [
                   ...prevLog,
                   {
                     action: 'noteDeleted',
-                    userId: clientId,
+                    userId: user.username,
                     timestamp: Date.now(),
                   },
                 ]);
+                */
               }}
               style={{ padding: '0px 20px', height: '70px' }}
             >
@@ -721,12 +762,12 @@ function MusicEditor() {
             >
               {entry.action === 'noteAdded' ? (
                 <>
-                  Note {entry.note} added by User: {entry.userId}
+                  Note {entry.note} added by {entry.userId}
                 </>
               ) : entry.action === 'noteDeleted' ? (
-                <>Note deleted by User: {entry.userId}</>
+                <>Note deleted by {entry.userId}</>
               ) : entry.action === 'restAdded' ? (
-                <>Rest added by User: {entry.userId}</>
+                <>Rest added by {entry.userId}</>
               ) : null}
             </li>
           ))}

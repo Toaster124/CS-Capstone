@@ -31,13 +31,13 @@ async def connect(sid, env):
 
 
 def processChanges(data):
-    print(data)
+    #print(data)
 
     #parse data
-    senderID = data["senderID"]
+    senderUsername = data["senderID"]
     projectID = data["projectID"]
     projectData = data["data"]
-    sender = get_object_or_404(User, pk=senderID)
+    sender = get_object_or_404(User, username=senderUsername)
     
     # get the project 
     project = get_object_or_404(Project, pk=projectID)
@@ -51,28 +51,32 @@ def processChanges(data):
 #on reception of a 'message' event
 @sio.on("message")
 async def handle_message(sid, data):
-    print("Socket ID", sid)
-    print("Data", data)
-    print("Type", type(data))
+    print("New Message")
+    #print("Socket ID", sid)
+    print("Data: ", data, "\nend data\n")
+    #print("Type", type(data))
     
 
     #run the function to perform the back-end work
     project = await sync_to_async(processChanges, thread_sensitive=True)(data) 
     
-    currentRoom = sio.rooms(sid)[0]
+    '''
+    currentRoom = sio.rooms(sid)
     if currentRoom != project.id:
         print(f"Leaving room: {currentRoom} and joining room: {project.id}")
         await sio.leave_room(sid, currentRoom) 
         await sio.enter_room(sid, str(project.id))
+    '''    
 
     #if sender info did not match
     if project == None:
         print("Attempted spoofing detected. No changes made")
     else:
         #notify other clients in a project of a change in project data
-        print("Project.data: ", project.data)
-        print("Room: ", sio.rooms(sid))
+        #print("Project.data: ", project.data)
+        #print("Room: ", sio.rooms(sid))
         await sio.emit("new_message", data, room=str(project.id))
+        print("new_message echoed.")
         #print("Room: ", sio.rooms(sid))
         #await sio.(project.id).emit("new_message", data)
 
