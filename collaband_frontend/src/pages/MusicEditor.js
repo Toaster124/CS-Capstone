@@ -114,41 +114,42 @@ function MusicEditor() {
   // Schedule notes for playback
   const scheduleNotes = useCallback(() => {
     Tone.Transport.cancel();
-
+  
     if (notes.length === 0) return;
-
-    // Compute cumulative start times based on note durations
+  
     let cumulativeTime = 0;
-    const validNotes = notes
-      .map((note) => {
-        // Ensure note.pitch is valid
-        if (!note.pitch || note.pitch === '-Infinity') {
-          console.warn('Invalid note:', note);
-          return null; // Skip invalid notes
-        }
-
-        const durationInSeconds = Tone.Time(note.duration).toSeconds();
-        const scheduledNote = {
-          time: cumulativeTime,
-          pitch: note.pitch,
-          duration: note.duration || '8n',
-        };
-        cumulativeTime += durationInSeconds;
-        return scheduledNote;
-      })
-      .filter(Boolean); // Remove any null entries
-
-    if (validNotes.length === 0) return;
-
+  
+    const events = notes.map((note) => {
+      const durationInSeconds = Tone.Time(note.duration).toSeconds();
+  
+      const scheduledEvent = {
+        time: cumulativeTime,
+        duration: note.duration || '8n',
+      };
+  
+      cumulativeTime += durationInSeconds;
+  
+      if (note.pitch && note.pitch !== 'rest' && note.pitch !== '-Infinity') {
+        scheduledEvent.pitch = note.pitch;
+      } else {
+        scheduledEvent.isRest = true;
+      }
+  
+      return scheduledEvent;
+    });
+  
     const part = new Tone.Part(
-      (time, note) => {
-        if (instrument && isInstrumentReady) {
-          instrument.triggerAttackRelease(note.pitch, note.duration, time);
+      (time, event) => {
+        if (event.isRest) {
+          // Do nothing for rests; the cumulativeTime already accounts for the silence
+        } else if (instrument && isInstrumentReady && event.pitch) {
+          instrument.triggerAttackRelease(event.pitch, event.duration, time);
         }
       },
-      validNotes
+      events
     ).start(0);
   }, [notes, instrument, isInstrumentReady]);
+  
 
   // Playback controls
   const handlePlay = () => {
@@ -346,42 +347,94 @@ function MusicEditor() {
 
     newSocket.on('new_message', (musicData) => {
       console.log('Received new message:', musicData);
-
-      const socketNote = musicData.data.note;
-      const socketVelocity = musicData.data.velocity;
+    
       const senderID = musicData.senderID;
-      const duration = musicData.data.duration || '8n';
-      const position = musicData.data.cursorPosition || notes.length;
-
-      // Get or assign a color for the user
-      //getUserColor(senderID);
-
-      // Record the note
-      setNotes((prevNotes) => {
-        const newNotes = [...prevNotes];
-        newNotes.splice(position, 0, {
-          pitch: socketNote,
-          duration: duration,
-          userId: senderID,
+      const data = musicData.data;
+      const type = data.type;
+      const position = data.cursorPosition || notes.length;
+    
+      if (type === 'notePlayed') {
+        const socketNote = data.note;
+        const socketVelocity = data.velocity;
+        const duration = data.duration || '8n';
+    
+        // Add the note to the notes array
+        setNotes((prevNotes) => {
+          const newNotes = [...prevNotes];
+          newNotes.splice(position, 0, {
+            pitch: socketNote,
+            duration: duration,
+            userId: senderID,
+          });
+          return newNotes;
         });
-        return newNotes;
-      });
-
-      // Record the action in the change log
-      setChangeLog((prevLog) => [
-        ...prevLog,
-        {
-          action: 'noteAdded',
-          note: socketNote,
-          duration: duration,
-          userId: senderID,
-          timestamp: Date.now(),
-        },
-      ]);
-
-      // Play note locally
-      playNoteLocally(socketNote, socketVelocity);
+    
+        // Update the change log
+        setChangeLog((prevLog) => [
+          ...prevLog,
+          {
+            action: 'noteAdded',
+            note: socketNote,
+            duration: duration,
+            userId: senderID,
+            timestamp: Date.now(),
+          },
+        ]);
+    
+        // Play the note locally if it's not from the current user
+        if (senderID !== user.username) {
+          playNoteLocally(socketNote, socketVelocity);
+        }
+    
+      } else if (type === 'restAdded') {
+        const duration = data.duration || '8n';
+    
+        // Add the rest to the notes array
+        setNotes((prevNotes) => {
+          const newNotes = [...prevNotes];
+          newNotes.splice(position, 0, {
+            pitch: 'rest',
+            duration: duration,
+            userId: senderID,
+          });
+          return newNotes;
+        });
+    
+        // Update the change log
+        setChangeLog((prevLog) => [
+          ...prevLog,
+          {
+            action: 'restAdded',
+            duration: duration,
+            userId: senderID,
+            timestamp: Date.now(),
+          },
+        ]);
+    
+        // No need to play a sound for rests
+      } else if (type === 'noteDeleted') {
+        // Handle note deletion
+        setNotes((prevNotes) => {
+          if (position > 0) {
+            const newNotes = [...prevNotes];
+            newNotes.splice(position - 1, 1);
+            return newNotes;
+          }
+          return prevNotes;
+        });
+    
+        // Update the change log
+        setChangeLog((prevLog) => [
+          ...prevLog,
+          {
+            action: 'noteDeleted',
+            userId: senderID,
+            timestamp: Date.now(),
+          },
+        ]);
+      }
     });
+    
 
     newSocket.on('new_backspace', (data) => {
       console.log('Received new backspace:', data);
@@ -601,23 +654,10 @@ function MusicEditor() {
         <Button
           variant="contained"
           onClick={() => {
-            // Add a rest at the cursor position
-            const restNote = {
-              pitch: 'rest',
-              duration: selectedDuration,
-              userId: user.user,
-            };
-            /*
-            setNotes((prevNotes) => {
-              const newNotes = [...prevNotes];
-              newNotes.splice(cursorPosition, 0, restNote);
-              return newNotes;
-            });
-            */
             setCursorPosition((prevPosition) => prevPosition + 1);
 
             // Record the action in the change log
-            /*
+            
             setChangeLog((prevLog) => [
               ...prevLog,
               {
@@ -627,7 +667,7 @@ function MusicEditor() {
                 timestamp: Date.now(),
               },
             ]);
-            */
+            
 
             // Send to server
             if (socket && socket.connected) {
@@ -647,6 +687,8 @@ function MusicEditor() {
         >
           Add Rest
         </Button>
+
+        
 
         {/* Playback Controls */}
         <ButtonGroup variant="contained" style={{ marginTop: '20px' }}>
