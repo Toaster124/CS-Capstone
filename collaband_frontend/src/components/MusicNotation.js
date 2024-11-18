@@ -16,6 +16,8 @@ function MusicNotation({ notes, userColors, timeSignature = '4/4' }) {
     const staveWidth = 300;
     const staveHeight = 150;
     const staveSpacing = 20;
+    const lineSpacing = 50; // Vertical space between lines
+    const measuresPerLine = 4; // Wrap after 4 measures
     const context = renderer.getContext();
     context.setFont('Arial', 10);
 
@@ -29,50 +31,53 @@ function MusicNotation({ notes, userColors, timeSignature = '4/4' }) {
     let accumulatedBeats = 0;
 
     notes.forEach((note) => {
-      // Extract pitch and duration from note object or use defaults
-      const pitch = note.pitch || note; // Handle both object and string formats
+      const pitch = note.pitch || note;
       const duration = note.duration ? convertDuration(note.duration) : 'q';
       const userColor = userColors[note.userId] || 'black';
 
-      const vexNote = new VF.StaveNote({
+      const isRest = pitch === 'rest';
+      const noteOptions = {
         clef: 'treble',
-        keys: [convertNoteForVexFlow(pitch)],
-        duration: duration,
-      });
+        keys: [isRest ? 'b/4' : convertNoteForVexFlow(pitch)],
+        duration: duration + (isRest ? 'r' : ''),
+      };
 
-      // Set the color of the note
+      const vexNote = new VF.StaveNote(noteOptions);
       vexNote.setStyle({ fillStyle: userColor, strokeStyle: userColor });
 
       currentMeasureNotes.push(vexNote);
 
-      // Convert duration to beats
       const durationBeats = getDurationBeats(duration);
-
       accumulatedBeats += durationBeats;
 
       if (accumulatedBeats >= beatsPerMeasure) {
-        // Add the current measure to measures array
         measures.push(currentMeasureNotes);
-        // Reset for next measure
         currentMeasureNotes = [];
         accumulatedBeats = 0;
       }
     });
 
-    // Add any remaining notes to the last measure
     if (currentMeasureNotes.length > 0) {
       measures.push(currentMeasureNotes);
     }
 
-    // **Adjust renderer size after measures are calculated**
+    // Adjust renderer size
     const numberOfMeasures = measures.length;
-    const totalWidth = staveWidth * numberOfMeasures + staveSpacing * (numberOfMeasures - 1);
-    renderer.resize(totalWidth + 20, 200); // Add some padding
+    const numberOfLines = Math.ceil(numberOfMeasures / measuresPerLine);
+    const totalWidth =
+      staveWidth * measuresPerLine + staveSpacing * (measuresPerLine - 1);
+    const totalHeight = (staveHeight + lineSpacing) * numberOfLines;
+    renderer.resize(totalWidth + 20, totalHeight + 20);
 
-    // Now, render each measure
-    let x = 10;
+    // Render each measure
     measures.forEach((measureNotes, index) => {
-      const stave = new VF.Stave(x, 40, staveWidth);
+      const lineIndex = Math.floor(index / measuresPerLine);
+      const measureIndexInLine = index % measuresPerLine;
+
+      const x = 10 + measureIndexInLine * (staveWidth + staveSpacing);
+      const y = 40 + lineIndex * (staveHeight + lineSpacing);
+
+      const stave = new VF.Stave(x, y, staveWidth);
       if (index === 0) {
         stave.addClef('treble').addTimeSignature(timeSignature);
         stave.setBegBarType(VF.Barline.type.SINGLE);
@@ -84,26 +89,24 @@ function MusicNotation({ notes, userColors, timeSignature = '4/4' }) {
       }
       stave.setContext(context).draw();
 
-      const voice = new VF.Voice({ num_beats: beatsPerMeasure, beat_value: beatValue });
-      voice.setStrict(false); // Allow incomplete measures
+      const voice = new VF.Voice({
+        num_beats: beatsPerMeasure,
+        beat_value: beatValue,
+      });
+      voice.setStrict(false);
       voice.addTickables(measureNotes);
 
-      // Format and justify the notes to the stave width
       new VF.Formatter().joinVoices([voice]).format([voice], staveWidth - 20);
 
-      // Render voice
       voice.draw(context, stave);
-
-      x += staveWidth + staveSpacing; // Move x for the next measure
     });
   }, [notes, userColors, timeSignature]);
 
   // Helper functions
   function convertNoteForVexFlow(pitch) {
-    // VexFlow expects notes in the format 'c/4'
     if (typeof pitch !== 'string') {
       console.warn('Invalid pitch:', pitch);
-      return 'c/4'; // Default to middle C if parsing fails
+      return 'c/4';
     }
 
     const match = pitch.match(/^([A-G]#?)(\d)$/);
@@ -111,11 +114,10 @@ function MusicNotation({ notes, userColors, timeSignature = '4/4' }) {
       const [, noteName, octave] = match;
       return `${noteName.toLowerCase()}/${octave}`;
     }
-    return 'c/4'; // Default to middle C if parsing fails
+    return 'c/4';
   }
 
   function convertDuration(duration) {
-    // Map Tone.js durations to VexFlow durations
     const durationMap = {
       '1n': 'w',    // Whole note
       '2n': 'h',    // Half note
@@ -127,6 +129,8 @@ function MusicNotation({ notes, userColors, timeSignature = '4/4' }) {
   }
 
   function getDurationBeats(duration) {
+    // Remove 'r' from duration if present (e.g., 'qr' becomes 'q')
+    const cleanDuration = duration.replace('r', '');
     const beatsMap = {
       'w': 4,
       'h': 2,
@@ -134,11 +138,10 @@ function MusicNotation({ notes, userColors, timeSignature = '4/4' }) {
       '8': 0.5,
       '16': 0.25,
     };
-    return beatsMap[duration] || 1;
+    return beatsMap[cleanDuration] || 1;
   }
 
   return <div ref={containerRef}></div>;
 }
 
 export default MusicNotation;
-
