@@ -194,11 +194,14 @@ def projectDAW(request, projectID):
             return Response({'error': str(e)}, status=400)
         
     elif request.method == 'PUT':   #modify a project field
+        print("PUT request")
+        print("Data: ", data)
+        
         try:
             #projectID = data.get('projectID')
             projectToChange = Project.objects.get(id=projectID, userID=user)
-            
-            if data.project:
+            #print("project found")
+            if "project" in data:
                 #change project info
                 newProjectName = data.get('project_name', projectToChange.projectName)       #second value is the default if no parameter is sent in the JSON
                 newProjectDescription = data.get('description', projectToChange.description) 
@@ -210,10 +213,14 @@ def projectDAW(request, projectID):
                 # save project changes
                 projectToChange.save()
                 return Response({'message':'Project modified successfully'}, status=200)
-            elif data.user_project_role:
+            elif "user_project_role" in data:
+                print("user_project_role detected")
+                
                 #add a user
-                newUserRole = data.user_project_role.get('role')
-                newUsernameToAdd = data.user_project_role.get('username')
+                newUserRole = data['user_project_role'].get('role')
+                print("newUserRole: ", newUserRole)
+                newUsernameToAdd = data['user_project_role'].get('username')
+                print("newUsernameToAdd: ", newUsernameToAdd)
                 
                 if newUserRole and newUsernameToAdd:
                     if newUserRole in ('collaborator', 'viewer'):
@@ -229,15 +236,23 @@ def projectDAW(request, projectID):
                         userRoleToCreate.projectID = projectToChange
                         #save new role relation
                         userRoleToCreate.save()
+                        print("User added successfully.")
                         return Response({'message':'User added successfully.'}, status=200)
-        
+                else:
+                    print("Error adding user")
+                    return Response({'error': str(e)}, status=400)
+            
+            
         except Project.DoesNotExist:
             return Response({'error': 'You are not the owner of this project and cannot modify it.'}, status=403)
         except UserProjectRole.DoesNotExist:
             return Response({'error': 'You are not associated with this project.'}, status=403)
+        except User.DoesNotExist:
+            return Response({'error': 'User does not exist.'}, status=404)
         
         except Exception as e:
             return Response({'error': str(e)}, status=400)
+        
     
     
     elif request.method == 'DELETE':
