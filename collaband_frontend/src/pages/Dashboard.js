@@ -75,10 +75,17 @@ function Dashboard() {
   };
 
   return (
-    <Container>
-      <Typography variant="h4" gutterBottom>
-        Your Projects
-      </Typography>
+      <Container>
+          <h1
+              style={{
+                  color: '#426B1F',
+                  fontWeight: 'bold', 
+                  marginBottom: '16px',
+                  fontSize: '60px'
+              }}
+          >
+               Projects
+          </h1>
       <Button variant="contained" color="primary" onClick={handleOpen}>
         Create New Project
       </Button>
