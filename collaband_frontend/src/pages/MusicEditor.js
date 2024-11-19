@@ -327,7 +327,7 @@ function MusicEditor() {
     if (iteration > 1) return; //prevents from running if it already exists
     iteration+=1;
     
-    const newSocket = io('http://127.0.0.1:8000', {
+    const newSocket = io('http://192.168.1.175:8000', {
       transports: ['websocket'],
       withCredentials: true,
     });
@@ -558,7 +558,7 @@ function MusicEditor() {
         </Typography>
 
         {/* View Mode Toggle */}
-        <ButtonGroup variant="contained" style={{ marginTop: '20px' }}>
+       {/* <ButtonGroup variant="contained" style={{ marginTop: '20px' }}>
           <Button
             onClick={() => setViewMode('staff')}
             disabled={viewMode === 'staff'}
@@ -571,7 +571,7 @@ function MusicEditor() {
           >
             Piano Roll
           </Button>
-        </ButtonGroup>
+        </ButtonGroup> */}
 
         {/* BPM Slider */}
         <Box sx={{ width: 300, marginTop: '20px' }}>
@@ -633,6 +633,7 @@ function MusicEditor() {
         </div>
 
         {/* Cursor Controls */}
+        <div style={{ paddingLeft: '20px', paddingRight: '20px', marginBottom: '20px' }}> 
         <ButtonGroup variant="contained" style={{ marginTop: '20px' }}>
           <Button
             onClick={() => setCursorPosition((prev) => Math.max(prev - 1, 0))}
@@ -650,48 +651,8 @@ function MusicEditor() {
           </Button>
         </ButtonGroup>
 
-        {/* Rest Button */}
-        <Button
-          variant="contained"
-          onClick={() => {
-            setCursorPosition((prevPosition) => prevPosition + 1);
-
-            // Record the action in the change log
-            
-            setChangeLog((prevLog) => [
-              ...prevLog,
-              {
-                action: 'restAdded',
-                duration: selectedDuration,
-                userId: user.username,
-                timestamp: Date.now(),
-              },
-            ]);
-            
-
-            // Send to server
-            if (socket && socket.connected) {
-              const message = {
-                senderID: user.username,
-                projectID: projectId,
-                data: {
-                  type: 'restAdded',
-                  duration: selectedDuration,
-                  cursorPosition: cursorPosition,
-                },
-              };
-              socket.emit('message', message);
-            }
-          }}
-          style={{ marginTop: '20px' }}
-        >
-          Add Rest
-        </Button>
-
-        
-
         {/* Playback Controls */}
-        <ButtonGroup variant="contained" style={{ marginTop: '20px' }}>
+        <ButtonGroup variant="contained" style={{ marginTop: '20px', marginLeft: '45px' }}>
           <Button onClick={handlePlay} disabled={isPlaying}>
             Play
           </Button>
@@ -700,6 +661,17 @@ function MusicEditor() {
           </Button>
           <Button onClick={handleStop}>Stop</Button>
         </ButtonGroup>
+        </div>
+
+        {/* Virtual Keyboard and Backspace Button */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: '20px',
+          }}
+        ></div>
 
         {/* Main Content */}
         {viewMode === 'staff' ? (
@@ -733,9 +705,9 @@ function MusicEditor() {
             )}
 
             {/* Backspace Button */}
-            <Button
-              variant="contained"
-              color="secondary"
+            <div style={{ paddingLeft: '0px', paddingRight: '20px'}}></div>
+            <Button 
+              variant="contained" style={{ marginTop: '20px' }}
               onClick={() => {
                 if (socket && socket.connected && cursorPosition>0) {
                   socket.emit('backspace', {
@@ -744,37 +716,53 @@ function MusicEditor() {
                     cursorPosition: cursorPosition,
                   });
                 }
-                // Remove the note at the cursor position
-                /*
-                setNotes((prevNotes) => {
-                  if (cursorPosition > 0) {
-                    const newNotes = [...prevNotes];
-                    newNotes.splice(cursorPosition - 1, 1);
-                    return newNotes;
-                  }
-                  return prevNotes;
-                });
-                */
+
                 // Move cursor back
                 setCursorPosition((prevPosition) =>
                   Math.max(prevPosition - 1, 0)
                 );
 
                 // Record the action in the change log
-                /*
-                setChangeLog((prevLog) => [
-                  ...prevLog,
-                  {
-                    action: 'noteDeleted',
-                    userId: user.username,
-                    timestamp: Date.now(),
-                  },
-                ]);
-                */
+
               }}
-              style={{ padding: '0px 20px', height: '70px' }}
+              style={{ padding: '0px 20px', height: '45px'  }}
             >
               Backspace
+            </Button>
+
+            <Button
+              variant="contained" style={{ marginTop: '20px' }}
+                onClick={() => {
+                    setCursorPosition((prevPosition) => prevPosition + 1);
+
+                    // Record the action in the change log
+                    setChangeLog((prevLog) => [
+                        ...prevLog,
+                        {
+                            action: 'restAdded',
+                            duration: selectedDuration,
+                            userId: user.username,
+                            timestamp: Date.now(),
+                        },
+                    ]);
+
+                    // Send to server
+                    if (socket && socket.connected) {
+                        const message = {
+                            senderID: user.username,
+                            projectID: projectId,
+                            data: {
+                                type: 'restAdded',
+                                duration: selectedDuration,
+                                cursorPosition: cursorPosition,
+                            },
+                        };
+                        socket.emit('message', message);
+                    }
+                }}
+                style={{ padding: '0px 20px', height: '45px'}}
+            >
+                Add Rest
             </Button>
           </div>
         </div>
