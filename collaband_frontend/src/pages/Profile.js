@@ -32,7 +32,7 @@ function Profile() {
             {/* Change Password Button */}
             <div style={{ marginTop: '20px', textAlign: 'center' }}>
                 <button
-                    onClick={() => alert('Its changed!')}
+                    onClick={() => alert('Its changed! Good luck')}
                     style={{
                         padding: '10px 20px',
                         backgroundColor: '#426B1F',
