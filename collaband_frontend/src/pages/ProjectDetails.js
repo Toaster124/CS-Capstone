@@ -107,9 +107,16 @@ function ProjectDetails() {
 
   return (
     <Container>
-      <Typography variant="h4" gutterBottom>
+          <h1
+              style={{
+                  color: '#426B1F',
+                  fontWeight: 'bold',
+                  marginBottom: '16px',
+                  fontSize: '60px'
+              }}
+          >
         {project.projectName}
-      </Typography>
+          </h1>
       <Typography variant="body1" gutterBottom>
         {project.description}
       </Typography>
@@ -127,7 +134,7 @@ function ProjectDetails() {
         {userRole === 'host' && (
           <>
             <Button
-              variant="outlined"
+              variant="contained"
               color="primary"
               onClick={() => setOpenAddUserDialog(true)}
               sx={{ mr: 2 }}
@@ -136,8 +143,8 @@ function ProjectDetails() {
             </Button>
 
             <Button
-              variant="outlined"
-              color="secondary"
+            variant="contained"
+             color="primary"
               onClick={() => setOpenDeleteDialog(true)}
             >
               Delete Project
