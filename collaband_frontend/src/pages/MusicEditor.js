@@ -639,7 +639,7 @@ function MusicEditor() {
             onClick={() => setCursorPosition((prev) => Math.max(prev - 1, 0))}
             disabled={cursorPosition === 0}
           >
-            Move Cursor Left
+            Move Left
           </Button>
           <Button
             onClick={() =>
@@ -647,7 +647,7 @@ function MusicEditor() {
             }
             disabled={cursorPosition === notes.length}
           >
-            Move Cursor Right
+            Move Right
           </Button>
         </ButtonGroup>
 
@@ -760,7 +760,7 @@ function MusicEditor() {
                         socket.emit('message', message);
                     }
                 }}
-                style={{ padding: '0px 20px', height: '45px'}}
+                style={{ padding: '0 20px', height: '45px'}}
             >
                 Add Rest
             </Button>
